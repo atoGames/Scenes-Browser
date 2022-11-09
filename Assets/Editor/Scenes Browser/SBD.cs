@@ -8,6 +8,8 @@ namespace ScenesBrowser
 {
     public class SBD : ScriptableObject
     {
+        public int m_PreviousScenesToolbarGridSize = 0;
+
         public bool m_AutoFindScene = true;
         // True = Left , false = Rigth
         public bool m_IsLeft = true;

@@ -22,7 +22,7 @@ namespace ScenesBrowser
         protected static Vector2 _WindowSettingsMaxSize = new Vector2(512, 256);
         // protected static List<SceneAsset> m_SceneAssets = new List<SceneAsset>();
         //
-        protected static float _Width = 64, _Heigth = 20;
+        protected static float _Width = 128, _Heigth = 20;
         // For filtering scenes
         protected const string _FilterBy = "*.unity";
         private const string _DataSavePath = "Assets/Editor/Scenes Browser";
@@ -33,21 +33,25 @@ namespace ScenesBrowser
         protected static SBD _DataSettings;
 
         #region Top bar 
-        protected string _ShowTopBarAt = "Show Toolbar At: ";
+        protected static int _ScenesToolbarGridSize = 0;
+        protected string _ShowToolbarAt = "Show Toolbar At: ";
         // For scroll content 
-        protected static Vector2 _ScrollPosAtTop;
+        protected static Vector2 _ScrollPositionOnToolbar;
         // Width & Heigth Settings and refresh BG
         protected static int _WidthSettingsAndRefreshBG = 26, _HeigthSettingsAndRefreshBG = 20;
-        // Settings and refresh BG
-        protected static Texture2D _SettingsAndRefreshBG; //= CreateNewTexture2D(16, 16, CreateNewColor());
+        protected static Action<int> onOpenNewScene;
+        protected static bool _IsSaveWindwoOpen = false;
+        protected static void ResetIsSaveWindwoOpen() => _IsSaveWindwoOpen = false;
+
+
         #endregion
-        private static Vector2 _ScrollPosAtSettingsWindow;
+        protected static Vector2 _ScrollPositionOnSettingsWindow;
 
         // Use this to save / remove / order
         // Key is the path of the scene , value is the scene it's self
-        private static Dictionary<string, SceneAsset> _Scenes = new Dictionary<string, SceneAsset>();
+        protected static Dictionary<string, SceneAsset> _SceneDictionary = new Dictionary<string, SceneAsset>();
         // Grid thing
-        protected int _GridSize = 0;
+        protected int _ScenesWindowGridSize = 0;
         protected int _GridCulm = 5;
 
         [MenuItem("Scenes Browser/Settings %E")]
@@ -66,6 +70,8 @@ namespace ScenesBrowser
         private static void LoadScenesBrowser()
         {
 
+            SceneStyles.LoadTextures();
+
             // We don't have settings-data ? 
             if (!_DataSettings)
                 GetSettingsData();
@@ -76,12 +82,17 @@ namespace ScenesBrowser
             // 
             AddSceneToDictionary();
 
+            onOpenNewScene += OpenNewScene;
+
+            // select last saved value 
+            _ScenesToolbarGridSize = _DataSettings.m_PreviousScenesToolbarGridSize;
+            //
 
 
         }
         private void OnEnable()
         {
-            _SettingsAndRefreshBG ??= CreateNewTexture2D(16, 16, CreateNewColor());
+            // _SettingsAndRefreshBG ??= CreateNewTexture2D(16, 16, CreateNewColor());
         }
         private void OnGUI()
         {
@@ -96,9 +107,7 @@ namespace ScenesBrowser
                 EditorGUILayout.BeginHorizontal();
                 using (var _SelectPath = new EditorGUILayout.HorizontalScope())
                 {
-                    var _AutoContent = new GUIContent();
-                    _AutoContent.text = "Auto";
-                    _AutoContent.tooltip = "Auto find scenes";
+                    var _AutoContent = ScenesBrowserExtender.GetGUIContent("Auto", "Auto find scenes");
 
                     _DataSettings.m_AutoFindScene = EditorGUILayout.Toggle(_DataSettings.m_AutoFindScene, GUILayout.MaxWidth(20));
                     EditorGUILayout.LabelField(_AutoContent, GUILayout.MaxWidth(50));
@@ -109,14 +118,17 @@ namespace ScenesBrowser
                         _DataSettings.m_ScenePath = EditorGUILayout.TextField(_DataSettings.m_ScenePath, GUILayout.Height(_Heigth));
                         if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("FolderOpened On Icon")), GUILayout.Width(25), GUILayout.Height(_Heigth)))
                         {
-                            SelectFolder(Application.dataPath);
+                            ScenesBrowserExtender.SelectFolder(Application.dataPath, _DataSettings);
                             Debug.Log("Open scenes folder to select path");
                         }
                         EditorGUILayout.EndHorizontal();
                     }
 
                 }
-                if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("d_Preset.Context")), GUILayout.Width(25), GUILayout.Height(_Heigth)))
+
+                var _ResetContent = ScenesBrowserExtender.GetGUIContent("", "Reset path", new GUIContent(EditorGUIUtility.IconContent("d_Preset.Context")).image);
+
+                if (GUILayout.Button(_ResetContent, GUILayout.Width(25), GUILayout.Height(_Heigth)))
                 {
                     NewReset();
                 }
@@ -130,22 +142,14 @@ namespace ScenesBrowser
                 {
                     // Left Or Right
                     _DataSettings.m_IsLeft = EditorGUILayout.Toggle(_DataSettings.m_IsLeft, GUILayout.MaxWidth(15));
-                    EditorGUILayout.LabelField(_DataSettings.m_IsLeft ? _ShowTopBarAt + " Left " : _ShowTopBarAt + " Right ", GUILayout.MaxWidth(150));
+                    EditorGUILayout.LabelField(_DataSettings.m_IsLeft ? _ShowToolbarAt + " Left " : _ShowToolbarAt + " Right ", GUILayout.MaxWidth(150));
 
                     // Quick Access
                     _DataSettings.m_ShowQuickAccess = EditorGUILayout.Toggle(_DataSettings.m_ShowQuickAccess, GUILayout.MaxWidth(15));
                     EditorGUILayout.LabelField(_DataSettings.m_ShowQuickAccess ? " Hide Quick Access " : " Show Quick Access ", GUILayout.MaxWidth(128));
-
-
-
-                    // EditorGUILayout.LabelField("Width : ", GUILayout.MaxWidth(45));
-                    // _WindowSettingsMaxSize.x = EditorGUILayout.FloatField(_WindowSettingsMaxSize.x, GUI.skin.textField/* , GUILayout.Width(155) */);
-                    // EditorGUILayout.LabelField("Heigth : ", GUILayout.MaxWidth(45));
-                    // _WindowSettingsMaxSize.y = EditorGUILayout.FloatField(_WindowSettingsMaxSize.y, GUI.skin.textField/* , GUILayout.Width(155) */);
-
                 }
 
-                ShowSceneOnWindowSettingsGrid();
+                ShowSceneOnWindowSettings();
 
 
                 // Save button
@@ -165,11 +169,11 @@ namespace ScenesBrowser
             }
         }
 
-        private void ShowSceneOnWindowSettingsGrid()
+        private void ShowSceneOnWindowSettings()
         {
 
             // Grid - /* EditorStyles.helpBox */
-            using (var _ShowSceneOnWindow = new EditorGUILayout.VerticalScope("Box"))
+            using (var _ShowSceneOnWindow = new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
                 if (GUILayout.Button(_GridCulm.ToString(), GUILayout.Width(22), GUILayout.Height(_Heigth)))
                 {
@@ -179,23 +183,20 @@ namespace ScenesBrowser
                         _GridCulm = 2;
 
                 }
-                using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPosAtSettingsWindow))
+                using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPositionOnSettingsWindow))
                 {
-                    _ScrollPosAtSettingsWindow = scrollView.scrollPosition;
+                    _ScrollPositionOnSettingsWindow = scrollView.scrollPosition;
                     // ShowScenes(64, 64);
                     // TODO: I don't like this but is work!
                     var _Names = new List<string>();
-                    foreach (var scene in _Scenes)
+                    foreach (var scene in _SceneDictionary)
                     {
-                        if (IsNotSceneNull(scene) && !_Names.Contains(scene.Value.name))
+                        if (ScenesBrowserExtender.IsNotSceneNull(scene) && !_Names.Contains(scene.Value.name))
                             _Names.Add(scene.Value.name);
                     }
 
-                    // var ss = new GUIStyle();
-                    // ss.onActive.background = (Texture2D)EditorGUIUtility.IconContent("SceneAsset On Icon").image;
-
                     // This is a old ? whoe care
-                    _GridSize = GUILayout.SelectionGrid(_GridSize, _Names.ToArray(), _GridCulm, GUILayout.MaxWidth(512), GUILayout.MaxHeight(512));
+                    _ScenesWindowGridSize = GUILayout.SelectionGrid(_ScenesWindowGridSize, _Names.ToArray(), _GridCulm/* , GUILayout.MaxWidth(512), GUILayout.MaxHeight(512) */);
                 }
 
             }
@@ -203,7 +204,9 @@ namespace ScenesBrowser
 
         private static void OnToolbarGUI()
         {
-            GetScenes();
+            // Is show quick access true ?
+            if (_DataSettings.m_ShowQuickAccess)
+                GetScenes();
         }
 
         public static void GetScenes()
@@ -211,7 +214,7 @@ namespace ScenesBrowser
             // Settings and refresh button
             SettingsAndRefreshButton();
             // Scroll - all scenes 
-            _ScrollPosAtTop = EditorGUILayout.BeginScrollView(_ScrollPosAtTop, false, true, GUILayout.MinHeight(50));
+            _ScrollPositionOnToolbar = EditorGUILayout.BeginScrollView(_ScrollPositionOnToolbar, false, true, GUILayout.MinHeight(50));
             using (var scenes = new EditorGUILayout.HorizontalScope())
             {
                 // If mouse over rect/content
@@ -221,7 +224,7 @@ namespace ScenesBrowser
                     if (Event.current.type == EventType.ScrollWheel)
                     {
                         // Scroll x value > Horizontal
-                        _ScrollPosAtTop.x += Event.current.delta.y * 10f;
+                        _ScrollPositionOnToolbar.x += Event.current.delta.y * 10f;
                         // Apply
                         Event.current.Use();
                     }
@@ -233,42 +236,72 @@ namespace ScenesBrowser
 
         private static void ShowScenesOnTopBar()
         {
+            /*  var _BtnStyle = SceneStyles.ButtonStyle();
+             //
+               foreach (var scene in _SceneDictionary)
+               {
+                   if (ScenesBrowserExtender.IsNotSceneNull(scene) && GUILayout.Button(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _BtnStyle, GUILayout.Width(_Width), GUILayout.Height(_Heigth)))
+                   {
+                       // If there unsave change > ask if i want to save , If user click yes
+                       if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                           // Open scene
+                           EditorSceneManager.OpenScene(scene.Key);
 
+                       // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
+                       GUIUtility.ExitGUI();
+                   }
+               } */
 
-            //
-            foreach (var scene in _Scenes)
+            // TODO: Move this to SettingsAndRefreshButton()
+            var _SceneNameAndIcon = new List<GUIContent>();
+            foreach (var scene in _SceneDictionary)
             {
-                if (IsNotSceneNull(scene) && GUILayout.Button(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image), GUILayout.Width(_Width), GUILayout.Height(_Heigth)))
-                {
-                    // If there unsave change > ask if i want to save , If user click yes
-                    if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                        // Open scene
-                        EditorSceneManager.OpenScene(scene.Key);
-
-                    // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
-                    GUIUtility.ExitGUI();
-                }
+                if (ScenesBrowserExtender.IsNotSceneNull(scene) && !_SceneNameAndIcon.Contains(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image)))
+                    _SceneNameAndIcon.Add(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
             }
 
+            _ScenesToolbarGridSize = GUILayout.Toolbar(_ScenesToolbarGridSize, _SceneNameAndIcon.ToArray(), GUILayout.MaxWidth(_Width * _SceneNameAndIcon.Count), GUILayout.MaxHeight(_Heigth));
+
+            // Is not thie same scene ? load the new scene
+            if (_ScenesToolbarGridSize != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsSaveWindwoOpen)
+            {
+                // So this dumb.. but to make this SaveCurrentModifiedScenesIfUserWantsTo() not show tows >> Fix me or let me alive
+                _IsSaveWindwoOpen = true;
+
+                // If there unsave change > ask if i want to save , If user click yes
+                if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                {   // Open scene
+                    onOpenNewScene?.Invoke(_ScenesToolbarGridSize);
+                    ResetIsSaveWindwoOpen();
+                }
+                else
+                {
+                    _ScenesToolbarGridSize = _DataSettings.m_PreviousScenesToolbarGridSize;
+                    ResetIsSaveWindwoOpen();
+                }
+
+                // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
+                GUIUtility.ExitGUI();
+            }
+
+
+        }
+        protected static void OpenNewScene(int index)
+        {
+            _DataSettings.m_PreviousScenesToolbarGridSize = index;
+            EditorSceneManager.OpenScene(_SceneDictionary.ElementAt(_DataSettings.m_PreviousScenesToolbarGridSize).Key);
         }
         private static void SettingsAndRefreshButton()
         {
-            if (_DataSettings.m_ShowQuickAccess)
+            // Settings && Refresh
+            using (var scenes = new EditorGUILayout.HorizontalScope(SceneStyles.SettingsAndRefreshStyle(), GUILayout.Width(_WidthSettingsAndRefreshBG)))
             {
-                var sty = new GUIStyle();
-                sty.normal.background = _SettingsAndRefreshBG;
-
-                // Settings && Refresh
-                using (var scenes = new EditorGUILayout.HorizontalScope(sty, GUILayout.Width(_WidthSettingsAndRefreshBG)))
-                {
-                    //                                                                                                   22                        22
-                    if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("EditorSettings Icon").image), GUILayout.Width(_WidthSettingsAndRefreshBG), GUILayout.Height(_HeigthSettingsAndRefreshBG)))
-                        ShowScenesBrowserSettings();
-                    if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("Refresh@2x").image), GUILayout.Width(_WidthSettingsAndRefreshBG), GUILayout.Height(_HeigthSettingsAndRefreshBG)))
-                        AddSceneToDictionary();
-                }
+                //                                                                                                   22                        22
+                if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("EditorSettings Icon").image), GUILayout.Width(_WidthSettingsAndRefreshBG), GUILayout.Height(_HeigthSettingsAndRefreshBG)))
+                    ShowScenesBrowserSettings();
+                if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("Refresh@2x").image), GUILayout.Width(_WidthSettingsAndRefreshBG), GUILayout.Height(_HeigthSettingsAndRefreshBG)))
+                    AddSceneToDictionary();
             }
-
         }
         private static void AddSceneToDictionary()
         {
@@ -291,9 +324,9 @@ namespace ScenesBrowser
                 // Get scenes name
                 var _Name = Between(_Path, "Scenes/", ".unity");
                 // We don't have this ??
-                if (!_Scenes.ContainsKey(_Path))
+                if (!_SceneDictionary.ContainsKey(_Path))
                     // Add it
-                    _Scenes.Add(_Path, AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path));
+                    _SceneDictionary.Add(_Path, AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path));
             }
 
         }
@@ -312,7 +345,7 @@ namespace ScenesBrowser
             _DataSettings.m_ScenePath = "";
 
         }
-        private static void GetSettingsData()
+        public static void GetSettingsData()
         {
             // Data folder
             var _DataPath = _DataSavePath + "/Data";
@@ -326,52 +359,10 @@ namespace ScenesBrowser
             }
             // Get data paths  
             var _FindAllSettingsData = Directory.GetFiles(_DataPath, "*.asset"); //[0];
-            // Get (data.asset)
-            _DataSettings = (_FindAllSettingsData.Length == 0) ? CreateNewData(_DataPath) : (SBD)EditorGUIUtility.Load(_FindAllSettingsData[0]);
+                                                                                 // Get (data.asset)
+            _DataSettings = (_FindAllSettingsData.Length == 0) ? ScenesBrowserExtender.CreateNewData(_DataPath) : (SBD)EditorGUIUtility.Load(_FindAllSettingsData[0]);
         }
-        // Create a new data to save the settings
-        private static SBD CreateNewData(string path)
-        {
-            var _Data = ScriptableObject.CreateInstance<SBD>();
-            AssetDatabase.CreateAsset(_Data, path + "/Data.asset");
-            AssetDatabase.SaveAssets();
-            return _Data;
-        }
-        // Select folder > Get path by select folder
-        protected void SelectFolder(string path)
-        {
-            // If path null-Empty return
-            if (path == string.Empty)
-                return;
-            // Curent project path
-            var _CurrentProjectPath = path + "/Assets";
-            // Return the full path
-            var _ScenePath = EditorUtility.OpenFolderPanel("Select Scenes Folder", _CurrentProjectPath, "Scenes");
-            // Don't show full path .. just (Assets/..)
-            _DataSettings.m_ScenePath = (_ScenePath.Contains("Assets")) ? _ScenePath.Substring(_ScenePath.IndexOf("Assets")) : _CurrentProjectPath;
-        }
-        public static bool IsNotSceneNull(KeyValuePair<string, SceneAsset> scene) => scene.Value != null;
-        private static Texture2D CreateNewTexture2D(int width, int height, Color col)
-        {
-            Color[] pix = new Color[width * height];
-            for (int i = 0; i < pix.Length; ++i)
-            {
-                pix[i] = col;
-            }
-            Texture2D result = new Texture2D(width, height);
-            result.SetPixels(pix);
-            result.Apply();
-            return result;
-        }
-        private static Color CreateNewColor(string hex = "3C3C3C")
-        {
-            //    => new Color(60f / 256f, 60f / 256f, 60f / 256f, 1f);
-            var _Color = new Color();
-            // Get settings and refresh BG color 
-            if (ColorUtility.TryParseHtmlString("#" + hex, out _Color))
-                return _Color;
 
-            return _Color = Color.black;
-        }
+
     }
 }
