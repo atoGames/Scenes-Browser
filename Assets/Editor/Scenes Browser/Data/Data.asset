@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Data
   m_EditorClassIdentifier: 
   m_PreviousScenesToolbarGridSize: 3
-  m_AutoFindScene: 1
+  m_AutoFindScene: 0
   m_IsLeft: 0
   m_ShowQuickAccess: 1
-  m_ScenePath: 
+  m_ScenePath: Assets/Scenes
