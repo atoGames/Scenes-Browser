@@ -46,7 +46,7 @@ namespace ScenesBrowser
         protected static Dictionary<string, SceneAsset> _SceneDictionary = new Dictionary<string, SceneAsset>();
         // Grid thing
         protected int _ScenesWindowGridSize = 0;
-        protected int _GridCulm = 5;
+        protected int _GridCulm = 4;
 
         [MenuItem("Scenes Browser/Settings %E")]
         public static void ShowScenesBrowserSettings()
@@ -177,8 +177,8 @@ namespace ScenesBrowser
                          _GridCulm = 2;
 
                  } */
-                _GridCulm = EditorGUILayout.IntSlider(_GridCulm, 4, 8, GUILayout.Width(Screen.width - 64));
-                GUILayout.Space(20);
+                // _GridCulm = EditorGUILayout.IntSlider(_GridCulm, 4, _SceneDictionary.Count, GUILayout.Width(Screen.width - 64));
+                // GUILayout.Space(20);
                 // Draw scenes
                 using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPositionOnSettingsWindow))
                 {
