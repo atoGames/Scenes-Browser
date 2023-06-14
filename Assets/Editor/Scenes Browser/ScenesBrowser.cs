@@ -40,7 +40,7 @@ namespace ScenesBrowser
         protected static void ResetIsSaveWindwoOpen() => _IsSaveWindwoOpen = false;
         #endregion
         protected static Vector2 _ScrollPositionOnSettingsWindow;
-        protected float _ButtonSize = 124f;
+        protected float _ButtonSize = 122f;
 
         // Use this to save / remove / order
         // Key is the path of the scene , value is the scene it's self
@@ -140,14 +140,8 @@ namespace ScenesBrowser
                     _DataSettings.m_ShowQuickAccess = EditorGUILayout.Toggle(_DataSettings.m_ShowQuickAccess, GUILayout.MaxWidth(15));
                     EditorGUILayout.LabelField(_DataSettings.m_ShowQuickAccess ? " Hide Quick Access " : " Show Quick Access ", GUILayout.MaxWidth(128));
                 }
-
-
-
+                // Draw scenes on window setting
                 DrawScenesOnWindowSetting();
-
-
-
-
             }
             else
             {
@@ -162,43 +156,50 @@ namespace ScenesBrowser
         /// </summary>
         private void DrawScenesOnWindowSetting()
         {
+
+            // using (var _ShowSceneOnWindow = new EditorGUILayout.HorizontalScope(GUI.skin.box))
+            GUI.BeginGroup(new Rect(2.5f, 52, Screen.width, Screen.height));
+            var _Position = new Rect(0, 0, Screen.width - 10, Screen.height - 120);
+            var _View = new Rect(0, 0, Screen.width - 25, Screen.height  /* * (_SceneDictionary.Count / 5) */);
+            // Draw scenes
+            // using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPositionOnSettingsWindow))
+
+            _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_Position, _ScrollPositionOnSettingsWindow, _View, false, false);
+            // _ScrollPositionOnSettingsWindow = scrollView.scrollPosition;
+
+            var yPos = 0f;
+            var _Count = 0;
+
+            foreach (var scene in _SceneDictionary)
+            {
+                if (_Count >= 4)
+                {
+                    yPos += _ButtonSize;
+                    _Count = 0;
+                }
+                var xPos = _ButtonSize * _Count;
+
+                var _SceneName = scene.Value?.name;
+                if (GUI.Button(new Rect(xPos, yPos, _ButtonSize, _ButtonSize), _SceneName))
+                    Debug.Log(_SceneName);
+                _Count++;
+            }
+            GUI.EndScrollView();
+
             // Save button
-            if (GUILayout.Button(new GUIContent(" Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Height(_Heigth + 10)))
+            if (GUI.Button(new Rect(0, Screen.height - 110, Screen.width - 25, 26), "Save"))
             {
                 ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
                 EditorUtility.SetDirty(_DataSettings);
                 AssetDatabase.SaveAssets();
             }
+            /*   if (GUILayout.Button(new GUIContent(" Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Height(_Heigth + 10)))
+              {
+                
+              } */
 
-            using (var _ShowSceneOnWindow = new EditorGUILayout.HorizontalScope(GUI.skin.box))
-            {
-                var _Position = new Rect(_ShowSceneOnWindow.rect.x + 2.5f, _ShowSceneOnWindow.rect.y + 2.5f, Screen.width - 10, Screen.height);
-                var _View = new Rect(0, 0, Screen.width, Screen.height  /* * (_SceneDictionary.Count / 5) */);
-                // Draw scenes
-                // using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPositionOnSettingsWindow))
+            GUI.EndGroup();
 
-                _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_Position, _ScrollPositionOnSettingsWindow, _View, false, true);
-                // _ScrollPositionOnSettingsWindow = scrollView.scrollPosition;
-
-                var yPos = 0f;
-                var _Count = 0;
-
-                foreach (var scene in _SceneDictionary)
-                {
-                    if (_Count >= 4)
-                    {
-                        yPos += _ButtonSize;
-                        _Count = 0;
-                    }
-                    var xPos = _ButtonSize * _Count;
-
-                    var _SceneName = scene.Value?.name;
-                    if (GUI.Button(new Rect(xPos, yPos, _ButtonSize, _ButtonSize), _SceneName))
-                        Debug.Log(_SceneName);
-                    _Count++;
-                }
-                GUI.EndScrollView();
-            }
         }
         /// <summary>
         /// On toolbar gui
