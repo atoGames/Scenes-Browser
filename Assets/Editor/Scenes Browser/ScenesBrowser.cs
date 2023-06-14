@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityToolbarExtender;
 
 // Unity toolbar extender : https://github.com/marijnz/unity-toolbar-extender
@@ -144,6 +145,7 @@ namespace ScenesBrowser
                 ShowSceneOnWindowSettings();
 
 
+
                 // Save button
                 if (GUILayout.Button(new GUIContent(" Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Height(_Heigth + 10)))
                 {
@@ -167,14 +169,16 @@ namespace ScenesBrowser
             // Grid - /* EditorStyles.helpBox */
             using (var _ShowSceneOnWindow = new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
-                if (GUILayout.Button(_GridCulm.ToString(), GUILayout.Width(22), GUILayout.Height(_Heigth)))
-                {
-                    _GridCulm += 2;
-                    // _GridCulm = Mathf.Clamp(_GridCulm, 1, 10);
-                    if (_GridCulm > 6)
-                        _GridCulm = 2;
+                /*  if (GUILayout.Button(_GridCulm.ToString(), GUILayout.Width(22), GUILayout.Height(_Heigth)))
+                 {
+                     _GridCulm += 2;
+                     // _GridCulm = Mathf.Clamp(_GridCulm, 1, 10);
+                     if (_GridCulm > 6)
+                         _GridCulm = 2;
 
-                }
+                 } */
+                _GridCulm = EditorGUILayout.IntSlider(_GridCulm, 4, 8, GUILayout.Width(Screen.width - 64));
+                GUILayout.Space(20);
                 // Draw scenes
                 using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPositionOnSettingsWindow))
                 {
@@ -187,11 +191,18 @@ namespace ScenesBrowser
                             _Names.Add(scene.Value.name);
                     }
 
-                    // This is a old ? whoe care
-                    _ScenesWindowGridSize = GUILayout.SelectionGrid(_ScenesWindowGridSize, _Names.ToArray(), _GridCulm/* , GUILayout.MaxWidth(512), GUILayout.MaxHeight(512) */);
+                    if (_GridCulm > 0)
+                        // This is a old ? whoe care
+                        _ScenesWindowGridSize = GUILayout.SelectionGrid(_ScenesWindowGridSize, _Names.ToArray(), _GridCulm, GUILayout.Width(350), GUILayout.Height(80));
+                    // _ScenesWindowGridSize = GUILayout.Toolbar(_ScenesWindowGridSize, _Names.ToArray(), GUILayout.Width(128), GUILayout.Height(128));
+
+
+
                 }
 
             }
+
+
         }
 
         private static void OnToolbarGUI()
