@@ -23,13 +23,15 @@ namespace ScenesBrowser
             if (path == string.Empty)
                 return;
             // Curent project path
-            var _CurrentProjectPath = path + "/Assets";
+            // var _CurrentProjectPath = path + "/Assets";
             // Return the full path
-            var _ScenePath = EditorUtility.OpenFolderPanel("Select Scenes Folder", _CurrentProjectPath, "Scenes");
-            // Don't show full path .. just (Assets/..)
-            _DataSettings.m_ScenePath = (_ScenePath.Contains("Assets")) ? _ScenePath.Substring(_ScenePath.IndexOf("Assets")) : _CurrentProjectPath;
+            var _ScenePath = EditorUtility.OpenFolderPanel("Select Scenes Folder", path, "Scenes");
+            // Path not null ?
+            if (!string.IsNullOrEmpty(_ScenePath))
+                // Don't show full path .. just (Assets/..)
+                _DataSettings.m_ScenePath = (_ScenePath.Contains("Assets")) ? _ScenePath.Substring(_ScenePath.IndexOf("Assets")) : path;
         }
-        public static bool IsNotSceneNull(KeyValuePair<string, SceneAsset> scene) => scene.Value != null;
+        public static bool IsSceneNotNull(KeyValuePair<string, SceneAsset> scene) => scene.Value != null;
         public static Texture2D CreateNewTexture2D(int width, int height, Color col)
         {
             Color[] pix = new Color[width * height];

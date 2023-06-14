@@ -1,11 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEditor.Toolbars;
 using UnityEngine;
 using UnityToolbarExtender;
 
@@ -14,7 +12,6 @@ using UnityToolbarExtender;
 
 namespace ScenesBrowser
 {
-
     public class ScenesBrowser : EditorWindow
     {
         protected static readonly GUIContent _WindowName = EditorGUIUtility.TrTextContent("Scenes Browser - Settings");
@@ -25,13 +22,11 @@ namespace ScenesBrowser
         protected static float _Width = 128, _Heigth = 20;
         // For filtering scenes
         protected const string _FilterBy = "*.unity";
-        private const string _DataSavePath = "Assets/Editor/Scenes Browser";
+        private const string _DataSettingsSavePath = "Assets/Editor/Scenes Browser";
         protected static string[] _GetAllScenesInProject;
-
 
         // To save stuff
         protected static SBD _DataSettings;
-
         #region Top bar 
         protected static int _ScenesToolbarGridSize = 0;
         protected string _ShowToolbarAt = "Show Toolbar At: ";
@@ -42,8 +37,6 @@ namespace ScenesBrowser
         protected static Action<int> onOpenNewScene;
         protected static bool _IsSaveWindwoOpen = false;
         protected static void ResetIsSaveWindwoOpen() => _IsSaveWindwoOpen = false;
-
-
         #endregion
         protected static Vector2 _ScrollPositionOnSettingsWindow;
 
@@ -74,13 +67,13 @@ namespace ScenesBrowser
 
             // We don't have settings-data ? 
             if (!_DataSettings)
-                GetSettingsData();
+                SetupSettingsData();
             // We have the data
             if (_DataSettings)
                 ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
 
             // 
-            AddSceneToDictionary();
+            UpdateSceneInDictionary();
 
             onOpenNewScene += OpenNewScene;
 
@@ -116,11 +109,10 @@ namespace ScenesBrowser
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.LabelField("Select Path : ", GUILayout.Width(75), GUILayout.Height(_Heigth));
                         _DataSettings.m_ScenePath = EditorGUILayout.TextField(_DataSettings.m_ScenePath, GUILayout.Height(_Heigth));
+                        // Open folder to select a scenes path
                         if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("FolderOpened On Icon")), GUILayout.Width(25), GUILayout.Height(_Heigth)))
-                        {
                             ScenesBrowserExtender.SelectFolder(Application.dataPath, _DataSettings);
-                            Debug.Log("Open scenes folder to select path");
-                        }
+
                         EditorGUILayout.EndHorizontal();
                     }
 
@@ -164,7 +156,7 @@ namespace ScenesBrowser
             {
                 // No Data found ? Create new data
                 if (GUILayout.Button(new GUIContent(" Create", EditorGUIUtility.IconContent("CreateAddNew").image), GUILayout.Height(_Heigth + 10)))
-                    GetSettingsData();
+                    SetupSettingsData();
 
             }
         }
@@ -183,15 +175,15 @@ namespace ScenesBrowser
                         _GridCulm = 2;
 
                 }
+                // Draw scenes
                 using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPositionOnSettingsWindow))
                 {
                     _ScrollPositionOnSettingsWindow = scrollView.scrollPosition;
-                    // ShowScenes(64, 64);
                     // TODO: I don't like this but is work!
                     var _Names = new List<string>();
                     foreach (var scene in _SceneDictionary)
                     {
-                        if (ScenesBrowserExtender.IsNotSceneNull(scene) && !_Names.Contains(scene.Value.name))
+                        if (ScenesBrowserExtender.IsSceneNotNull(scene) && !_Names.Contains(scene.Value.name))
                             _Names.Add(scene.Value.name);
                     }
 
@@ -256,7 +248,7 @@ namespace ScenesBrowser
             var _SceneNameAndIcon = new List<GUIContent>();
             foreach (var scene in _SceneDictionary)
             {
-                if (ScenesBrowserExtender.IsNotSceneNull(scene) && !_SceneNameAndIcon.Contains(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image)))
+                if (ScenesBrowserExtender.IsSceneNotNull(scene) && !_SceneNameAndIcon.Contains(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image)))
                     _SceneNameAndIcon.Add(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
             }
 
@@ -279,16 +271,18 @@ namespace ScenesBrowser
                     _ScenesToolbarGridSize = _DataSettings.m_PreviousScenesToolbarGridSize;
                     ResetIsSaveWindwoOpen();
                 }
-
                 // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
                 GUIUtility.ExitGUI();
             }
-
-
         }
+        /// <summary>
+        /// Open new scene by index
+        /// </summary>
         protected static void OpenNewScene(int index)
         {
+            // Save prev scene index
             _DataSettings.m_PreviousScenesToolbarGridSize = index;
+            // Open scene
             EditorSceneManager.OpenScene(_SceneDictionary.ElementAt(_DataSettings.m_PreviousScenesToolbarGridSize).Key);
         }
         private static void SettingsAndRefreshButton()
@@ -296,26 +290,32 @@ namespace ScenesBrowser
             // Settings && Refresh
             using (var scenes = new EditorGUILayout.HorizontalScope(SceneStyles.SettingsAndRefreshStyle(), GUILayout.Width(_WidthSettingsAndRefreshBG)))
             {
-                //                                                                                                   22                        22
+                // Open settings
                 if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("EditorSettings Icon").image), GUILayout.Width(_WidthSettingsAndRefreshBG), GUILayout.Height(_HeigthSettingsAndRefreshBG)))
                     ShowScenesBrowserSettings();
+                // Refresh
                 if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("Refresh@2x").image), GUILayout.Width(_WidthSettingsAndRefreshBG), GUILayout.Height(_HeigthSettingsAndRefreshBG)))
-                    AddSceneToDictionary();
+                    UpdateSceneInDictionary();
             }
         }
-        private static void AddSceneToDictionary()
+        /// <summary>
+        /// Update scene in dictionary
+        /// </summary>
+        private static void UpdateSceneInDictionary()
         {
+            // Clear prev scene
+            _SceneDictionary.Clear();
             // If Auto find scenes active > Find all scene in this ptoject
             if (_DataSettings.m_AutoFindScene)
                 _GetAllScenesInProject = Directory.GetFiles(Application.dataPath, _FilterBy, SearchOption.AllDirectories);
             else
             {
+                // We have a path ? Look for scenes ..
                 if (_DataSettings.m_ScenePath != string.Empty)
                     _GetAllScenesInProject = Directory.GetFiles(_DataSettings.m_ScenePath, _FilterBy);
                 else
                     Debug.LogError($"Path is null {_DataSettings.m_ScenePath}");
             }
-
             // Start adding to dictionary
             foreach (var sc in _GetAllScenesInProject)
             {
@@ -330,25 +330,18 @@ namespace ScenesBrowser
             }
 
         }
-        // I find this on (https://stackoverflow.com/) but i forget to copy the link , now i don't remember what this do );
-        private static string Between(string str, string firstStr, string lastStr)
+        private static string Between(string path, string firstStr, string lastStr)
         {
-            string FinalString;
-            int Pos1 = str.IndexOf(firstStr) + firstStr.Length;
-            int Pos2 = str.IndexOf(lastStr);
-            FinalString = str.Substring(Pos1, Pos2 - Pos1);
-            return FinalString;
+            var _Str = path.IndexOf(firstStr) + firstStr.Length;
+            return path.Substring(_Str, path.IndexOf(lastStr) - _Str);
         }
-        private void NewReset()
-        {
-            Debug.Log("Fun Reset $Remove me");
-            _DataSettings.m_ScenePath = "";
-
-        }
-        public static void GetSettingsData()
+        /// <summary>
+        /// Setup settings data
+        /// </summary>
+        private static void SetupSettingsData()
         {
             // Data folder
-            var _DataPath = _DataSavePath + "/Data";
+            var _DataPath = _DataSettingsSavePath + "/Data";
             // If we don't have data folder ... create new one
             if (!Directory.Exists(_DataPath))
             {
@@ -358,11 +351,14 @@ namespace ScenesBrowser
                 AssetDatabase.Refresh();
             }
             // Get data paths  
-            var _FindAllSettingsData = Directory.GetFiles(_DataPath, "*.asset"); //[0];
-                                                                                 // Get (data.asset)
+            var _FindAllSettingsData = Directory.GetFiles(_DataPath, "*.asset");
+            // Get (data.asset)
             _DataSettings = (_FindAllSettingsData.Length == 0) ? ScenesBrowserExtender.CreateNewData(_DataPath) : (SBD)EditorGUIUtility.Load(_FindAllSettingsData[0]);
         }
-
-
+        private void NewReset()
+        {
+            Debug.Log("Fun Reset $Remove me");
+            _DataSettings.m_ScenePath = "";
+        }
     }
 }
