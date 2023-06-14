@@ -40,7 +40,7 @@ namespace ScenesBrowser
         protected static void ResetIsSaveWindwoOpen() => _IsSaveWindwoOpen = false;
         #endregion
         protected static Vector2 _ScrollPositionOnSettingsWindow;
-        protected float _ButtonSize = 120f;
+        protected float _ButtonSize = 124f;
 
         // Use this to save / remove / order
         // Key is the path of the scene , value is the scene it's self
@@ -141,15 +141,13 @@ namespace ScenesBrowser
                     EditorGUILayout.LabelField(_DataSettings.m_ShowQuickAccess ? " Hide Quick Access " : " Show Quick Access ", GUILayout.MaxWidth(128));
                 }
 
-                ShowSceneOnWindowSettings();
 
-                // Save button
-                if (GUILayout.Button(new GUIContent(" Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Height(_Heigth + 10)))
-                {
-                    ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
-                    EditorUtility.SetDirty(_DataSettings);
-                    AssetDatabase.SaveAssets();
-                }
+
+                DrawScenesOnWindowSetting();
+
+
+
+
             }
             else
             {
@@ -159,78 +157,84 @@ namespace ScenesBrowser
 
             }
         }
-
-        private void ShowSceneOnWindowSettings()
+        /// <summary>
+        /// Draw scenes on window setting
+        /// </summary>
+        private void DrawScenesOnWindowSetting()
         {
+            // Save button
+            if (GUILayout.Button(new GUIContent(" Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Height(_Heigth + 10)))
+            {
+                ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
+                EditorUtility.SetDirty(_DataSettings);
+                AssetDatabase.SaveAssets();
+            }
 
-            // Grid - /* EditorStyles.helpBox */
             using (var _ShowSceneOnWindow = new EditorGUILayout.HorizontalScope(GUI.skin.box))
             {
-
-                var rr = new Rect(0, 0, Screen.width, Screen.height);
-
+                var _Position = new Rect(_ShowSceneOnWindow.rect.x + 2.5f, _ShowSceneOnWindow.rect.y + 2.5f, Screen.width - 10, Screen.height);
+                var _View = new Rect(0, 0, Screen.width, Screen.height  /* * (_SceneDictionary.Count / 5) */);
                 // Draw scenes
-                using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPositionOnSettingsWindow))
+                // using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPositionOnSettingsWindow))
+
+                _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_Position, _ScrollPositionOnSettingsWindow, _View, false, true);
+                // _ScrollPositionOnSettingsWindow = scrollView.scrollPosition;
+
+                var yPos = 0f;
+                var _Count = 0;
+
+                foreach (var scene in _SceneDictionary)
                 {
-                    _ScrollPositionOnSettingsWindow = scrollView.scrollPosition;
-
-                    var yPos = 0f;
-                    var _Count = 0;
-
-                    foreach (var scene in _SceneDictionary)
+                    if (_Count >= 4)
                     {
-                        if (_Count >= 4)
-                        {
-                            yPos += _ButtonSize;
-                            _Count = 0;
-                        }
-                        var xPos = _ButtonSize * _Count;
-
-                        var _SceneName = scene.Value.name;
-                        if (GUI.Button(new Rect(xPos, yPos, _ButtonSize, _ButtonSize), _SceneName))
-                            Debug.Log(_SceneName);
-
-                        _Count++;
+                        yPos += _ButtonSize;
+                        _Count = 0;
                     }
-                    GUI.EndScrollView();
+                    var xPos = _ButtonSize * _Count;
+
+                    var _SceneName = scene.Value?.name;
+                    if (GUI.Button(new Rect(xPos, yPos, _ButtonSize, _ButtonSize), _SceneName))
+                        Debug.Log(_SceneName);
+                    _Count++;
                 }
+                GUI.EndScrollView();
             }
         }
-
+        /// <summary>
+        /// On toolbar gui
+        /// </summary>
         private static void OnToolbarGUI()
         {
             // Is show quick access true ?
             if (_DataSettings.m_ShowQuickAccess)
-                GetScenes();
+                DrawScenesOnToolbar();
         }
-
-        public static void GetScenes()
+        /// <summary>
+        /// Draw scenes on toolbar
+        /// </summary>
+        public static void DrawScenesOnToolbar()
         {
             // Settings and refresh button
             SettingsAndRefreshButton();
-            /* 
-              // Scroll - all scenes 
-              _ScrollPositionOnToolbar = EditorGUILayout.BeginScrollView(_ScrollPositionOnToolbar, false, false, GUILayout.MinHeight(50));
-              using (var scenes = new EditorGUILayout.HorizontalScope())
-              {
-                  // If mouse over rect/content
-                  if (scenes.rect.Contains(Event.current.mousePosition))
-                  {
-                      // Scroll by scroll wheel
-                      if (Event.current.type == EventType.ScrollWheel)
-                      {
-                          // Scroll x value > Horizontal
-                          _ScrollPositionOnToolbar.x += Event.current.delta.y * 10f;
-                          // Apply
-                          Event.current.Use();
-                      }
-                  }
-                  ShowScenesOnTopBar();
-              }
-              EditorGUILayout.EndScrollView();
-               */
-
-            ScrollView(ShowScenesOnTopBar);
+            // Scroll - all scenes 
+            _ScrollPositionOnToolbar = EditorGUILayout.BeginScrollView(_ScrollPositionOnToolbar, false, false, GUILayout.MinHeight(50));
+            using (var scenes = new EditorGUILayout.HorizontalScope())
+            {
+                // If mouse over rect/content
+                if (scenes.rect.Contains(Event.current.mousePosition))
+                {
+                    // Scroll by scroll wheel
+                    if (Event.current.type == EventType.ScrollWheel)
+                    {
+                        // Scroll x value > Horizontal
+                        _ScrollPositionOnToolbar.x += Event.current.delta.y * 10f;
+                        // Apply
+                        Event.current.Use();
+                    }
+                }
+                ShowScenesOnTopBar();
+            }
+            EditorGUILayout.EndScrollView();
         }
 
         private static void ShowScenesOnTopBar()
@@ -352,28 +356,5 @@ namespace ScenesBrowser
             _DataSettings.m_ScenePath = "";
         }
 
-        public static void ScrollView(Action content, int minHeight = 50)
-        {
-            // Scroll - all scenes 
-            _ScrollPositionOnToolbar = EditorGUILayout.BeginScrollView(_ScrollPositionOnToolbar, false, false, GUILayout.MinHeight(minHeight));
-            using (var scenes = new EditorGUILayout.HorizontalScope())
-            {
-                // If mouse over rect/content
-                if (scenes.rect.Contains(Event.current.mousePosition))
-                {
-                    // Scroll by scroll wheel
-                    if (Event.current.type == EventType.ScrollWheel)
-                    {
-                        // Scroll x value > Horizontal
-                        _ScrollPositionOnToolbar.x += Event.current.delta.y * 10f;
-                        // Apply
-                        Event.current.Use();
-                    }
-                }
-                // Draw content
-                content?.Invoke();
-            }
-            EditorGUILayout.EndScrollView();
-        }
     }
 }
