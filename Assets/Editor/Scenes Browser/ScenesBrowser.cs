@@ -29,7 +29,7 @@ namespace ScenesBrowser
         // To save stuff
         protected static SBD _DataSettings;
         #region Top bar 
-        protected static int _ScenesToolbarGridSize = 0;
+        protected static int _SelectedScene = 0;
         protected string _ShowToolbarAt = "Show Toolbar At: ";
         // For scroll content 
         protected static Vector2 _ScrollPositionOnToolbar;
@@ -40,6 +40,7 @@ namespace ScenesBrowser
         protected static void ResetIsSaveWindwoOpen() => _IsSaveWindwoOpen = false;
         #endregion
         protected static Vector2 _ScrollPositionOnSettingsWindow;
+        protected float _ButtonSize = 120f;
 
         // Use this to save / remove / order
         // Key is the path of the scene , value is the scene it's self
@@ -79,7 +80,7 @@ namespace ScenesBrowser
             onOpenNewScene += OpenNewScene;
 
             // select last saved value 
-            _ScenesToolbarGridSize = _DataSettings.m_PreviousScenesToolbarGridSize;
+            _SelectedScene = _DataSettings.m_PreviousScenesToolbarGridSize;
             //
 
 
@@ -122,12 +123,10 @@ namespace ScenesBrowser
                 var _ResetContent = ScenesBrowserExtender.GetGUIContent("", "Reset path", new GUIContent(EditorGUIUtility.IconContent("d_Preset.Context")).image);
 
                 if (GUILayout.Button(_ResetContent, GUILayout.Width(25), GUILayout.Height(_Heigth)))
-                {
                     NewReset();
-                }
+
                 EditorGUILayout.EndHorizontal();
                 // End of top
-
 
                 // EditorGUILayout.Space(3);
                 // Show Scene At Left Or Right
@@ -143,8 +142,6 @@ namespace ScenesBrowser
                 }
 
                 ShowSceneOnWindowSettings();
-
-
 
                 // Save button
                 if (GUILayout.Button(new GUIContent(" Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Height(_Heigth + 10)))
@@ -167,42 +164,37 @@ namespace ScenesBrowser
         {
 
             // Grid - /* EditorStyles.helpBox */
-            using (var _ShowSceneOnWindow = new EditorGUILayout.VerticalScope(GUI.skin.box))
+            using (var _ShowSceneOnWindow = new EditorGUILayout.HorizontalScope(GUI.skin.box))
             {
-                /*  if (GUILayout.Button(_GridCulm.ToString(), GUILayout.Width(22), GUILayout.Height(_Heigth)))
-                 {
-                     _GridCulm += 2;
-                     // _GridCulm = Mathf.Clamp(_GridCulm, 1, 10);
-                     if (_GridCulm > 6)
-                         _GridCulm = 2;
 
-                 } */
-                // _GridCulm = EditorGUILayout.IntSlider(_GridCulm, 4, _SceneDictionary.Count, GUILayout.Width(Screen.width - 64));
-                // GUILayout.Space(20);
+                var rr = new Rect(0, 0, Screen.width, Screen.height);
+
                 // Draw scenes
                 using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPositionOnSettingsWindow))
                 {
                     _ScrollPositionOnSettingsWindow = scrollView.scrollPosition;
-                    // TODO: I don't like this but is work!
-                    var _Names = new List<string>();
+
+                    var yPos = 0f;
+                    var _Count = 0;
+
                     foreach (var scene in _SceneDictionary)
                     {
-                        if (ScenesBrowserExtender.IsSceneNotNull(scene) && !_Names.Contains(scene.Value.name))
-                            _Names.Add(scene.Value.name);
+                        if (_Count >= 4)
+                        {
+                            yPos += _ButtonSize;
+                            _Count = 0;
+                        }
+                        var xPos = _ButtonSize * _Count;
+
+                        var _SceneName = scene.Value.name;
+                        if (GUI.Button(new Rect(xPos, yPos, _ButtonSize, _ButtonSize), _SceneName))
+                            Debug.Log(_SceneName);
+
+                        _Count++;
                     }
-
-                    // if (_GridCulm > 0)
-                    // This is a old ? whoe care
-                    _ScenesWindowGridSize = GUILayout.SelectionGrid(_ScenesWindowGridSize, _Names.ToArray(), _GridCulm, GUILayout.Width(350), GUILayout.Height(80));
-                    // _ScenesWindowGridSize = GUILayout.Toolbar(_ScenesWindowGridSize, _Names.ToArray(), GUILayout.Width(128), GUILayout.Height(128));
-
-
-
+                    GUI.EndScrollView();
                 }
-
             }
-
-
         }
 
         private static void OnToolbarGUI()
@@ -216,57 +208,45 @@ namespace ScenesBrowser
         {
             // Settings and refresh button
             SettingsAndRefreshButton();
-            // Scroll - all scenes 
-            _ScrollPositionOnToolbar = EditorGUILayout.BeginScrollView(_ScrollPositionOnToolbar, false, false, GUILayout.MinHeight(50));
-            using (var scenes = new EditorGUILayout.HorizontalScope())
-            {
-                // If mouse over rect/content
-                if (scenes.rect.Contains(Event.current.mousePosition))
-                {
-                    // Scroll by scroll wheel
-                    if (Event.current.type == EventType.ScrollWheel)
-                    {
-                        // Scroll x value > Horizontal
-                        _ScrollPositionOnToolbar.x += Event.current.delta.y * 10f;
-                        // Apply
-                        Event.current.Use();
-                    }
-                }
-                ShowScenesOnTopBar();
-            }
-            EditorGUILayout.EndScrollView();
+            /* 
+              // Scroll - all scenes 
+              _ScrollPositionOnToolbar = EditorGUILayout.BeginScrollView(_ScrollPositionOnToolbar, false, false, GUILayout.MinHeight(50));
+              using (var scenes = new EditorGUILayout.HorizontalScope())
+              {
+                  // If mouse over rect/content
+                  if (scenes.rect.Contains(Event.current.mousePosition))
+                  {
+                      // Scroll by scroll wheel
+                      if (Event.current.type == EventType.ScrollWheel)
+                      {
+                          // Scroll x value > Horizontal
+                          _ScrollPositionOnToolbar.x += Event.current.delta.y * 10f;
+                          // Apply
+                          Event.current.Use();
+                      }
+                  }
+                  ShowScenesOnTopBar();
+              }
+              EditorGUILayout.EndScrollView();
+               */
+
+            ScrollView(ShowScenesOnTopBar);
         }
 
         private static void ShowScenesOnTopBar()
         {
-            /*  var _BtnStyle = SceneStyles.ButtonStyle();
-             //
-               foreach (var scene in _SceneDictionary)
-               {
-                   if (ScenesBrowserExtender.IsNotSceneNull(scene) && GUILayout.Button(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _BtnStyle, GUILayout.Width(_Width), GUILayout.Height(_Heigth)))
-                   {
-                       // If there unsave change > ask if i want to save , If user click yes
-                       if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                           // Open scene
-                           EditorSceneManager.OpenScene(scene.Key);
-
-                       // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
-                       GUIUtility.ExitGUI();
-                   }
-               } */
-
-            // TODO: Move this to SettingsAndRefreshButton()
             var _SceneNameAndIcon = new List<GUIContent>();
+
             foreach (var scene in _SceneDictionary)
             {
                 if (ScenesBrowserExtender.IsSceneNotNull(scene) && !_SceneNameAndIcon.Contains(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image)))
                     _SceneNameAndIcon.Add(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
             }
-
-            _ScenesToolbarGridSize = GUILayout.Toolbar(_ScenesToolbarGridSize, _SceneNameAndIcon.ToArray(), GUILayout.MaxWidth(_Width * _SceneNameAndIcon.Count), GUILayout.MaxHeight(_Heigth));
+            // Scene on Tool bar
+            _SelectedScene = GUILayout.Toolbar(_SelectedScene, _SceneNameAndIcon.ToArray(), GUILayout.MaxWidth(_Width * _SceneNameAndIcon.Count), GUILayout.MaxHeight(_Heigth));
 
             // Is not thie same scene ? load the new scene
-            if (_ScenesToolbarGridSize != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsSaveWindwoOpen)
+            if (_SelectedScene != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsSaveWindwoOpen)
             {
                 // So this dumb.. but to make this SaveCurrentModifiedScenesIfUserWantsTo() not show tows >> Fix me or let me alive
                 _IsSaveWindwoOpen = true;
@@ -274,12 +254,12 @@ namespace ScenesBrowser
                 // If there unsave change > ask if i want to save , If user click yes
                 if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 {   // Open scene
-                    onOpenNewScene?.Invoke(_ScenesToolbarGridSize);
+                    onOpenNewScene?.Invoke(_SelectedScene);
                     ResetIsSaveWindwoOpen();
                 }
                 else
                 {
-                    _ScenesToolbarGridSize = _DataSettings.m_PreviousScenesToolbarGridSize;
+                    _SelectedScene = _DataSettings.m_PreviousScenesToolbarGridSize;
                     ResetIsSaveWindwoOpen();
                 }
                 // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
@@ -370,6 +350,30 @@ namespace ScenesBrowser
         {
             Debug.Log("Fun Reset $Remove me");
             _DataSettings.m_ScenePath = "";
+        }
+
+        public static void ScrollView(Action content, int minHeight = 50)
+        {
+            // Scroll - all scenes 
+            _ScrollPositionOnToolbar = EditorGUILayout.BeginScrollView(_ScrollPositionOnToolbar, false, false, GUILayout.MinHeight(minHeight));
+            using (var scenes = new EditorGUILayout.HorizontalScope())
+            {
+                // If mouse over rect/content
+                if (scenes.rect.Contains(Event.current.mousePosition))
+                {
+                    // Scroll by scroll wheel
+                    if (Event.current.type == EventType.ScrollWheel)
+                    {
+                        // Scroll x value > Horizontal
+                        _ScrollPositionOnToolbar.x += Event.current.delta.y * 10f;
+                        // Apply
+                        Event.current.Use();
+                    }
+                }
+                // Draw content
+                content?.Invoke();
+            }
+            EditorGUILayout.EndScrollView();
         }
     }
 }
