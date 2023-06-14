@@ -191,9 +191,9 @@ namespace ScenesBrowser
                             _Names.Add(scene.Value.name);
                     }
 
-                    if (_GridCulm > 0)
-                        // This is a old ? whoe care
-                        _ScenesWindowGridSize = GUILayout.SelectionGrid(_ScenesWindowGridSize, _Names.ToArray(), _GridCulm, GUILayout.Width(350), GUILayout.Height(80));
+                    // if (_GridCulm > 0)
+                    // This is a old ? whoe care
+                    _ScenesWindowGridSize = GUILayout.SelectionGrid(_ScenesWindowGridSize, _Names.ToArray(), _GridCulm, GUILayout.Width(350), GUILayout.Height(80));
                     // _ScenesWindowGridSize = GUILayout.Toolbar(_ScenesWindowGridSize, _Names.ToArray(), GUILayout.Width(128), GUILayout.Height(128));
 
 
@@ -217,7 +217,7 @@ namespace ScenesBrowser
             // Settings and refresh button
             SettingsAndRefreshButton();
             // Scroll - all scenes 
-            _ScrollPositionOnToolbar = EditorGUILayout.BeginScrollView(_ScrollPositionOnToolbar, false, true, GUILayout.MinHeight(50));
+            _ScrollPositionOnToolbar = EditorGUILayout.BeginScrollView(_ScrollPositionOnToolbar, false, false, GUILayout.MinHeight(50));
             using (var scenes = new EditorGUILayout.HorizontalScope())
             {
                 // If mouse over rect/content
