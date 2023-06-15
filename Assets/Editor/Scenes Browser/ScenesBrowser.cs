@@ -147,7 +147,7 @@ namespace ScenesBrowser
             // using (var _ShowSceneOnWindow = new EditorGUILayout.HorizontalScope(GUI.skin.box))
             GUI.BeginGroup(new Rect(2.5f, 55, Screen.width, Screen.height));
             var _Position = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
-            var _View = new Rect(0, 0, Screen.width - 25, Screen.height  /* * (_SceneDictionary.Count / 5) */);
+            var _View = new Rect(0, 0, Screen.width - 25, _Position.height * (ScenesBrowserExtender.SceneList.Count / 4));
             // Begin scroll view
             _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_Position, _ScrollPositionOnSettingsWindow, _View, false, false);
 
@@ -249,10 +249,9 @@ namespace ScenesBrowser
 
         private static void DrawScenesOnToolbar()
         {
-            var _SceneArray = ScenesBrowserExtender.GetSceneNameAndIcon();
-
+            var _SceneAndIconArray = ScenesBrowserExtender.GetSceneNameAndIcon();
             // Scene on Tool bar
-            _SelectedScene = GUILayout.Toolbar(_SelectedScene, _SceneArray, GUILayout.MaxWidth(_Width * _SceneArray.Length), GUILayout.MaxHeight(_Heigth));
+            _SelectedScene = GUILayout.Toolbar(_SelectedScene, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
 
             // Is not thie same scene ? load the new scene
             if (_SelectedScene != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsSaveWindwoOpen)
@@ -308,8 +307,9 @@ namespace ScenesBrowser
         private static void UpdateSceneInDictionary()
         {
             // Clear prev scene
-            // _SceneDictionary.Clear();
             ScenesBrowserExtender.SceneList.Clear();
+
+            Debug.Log("Update Scene In Dictionary");
 
             // If Auto find scenes active > Find all scene in this ptoject
             if (_DataSettings.m_AutoFindScene)
@@ -330,15 +330,11 @@ namespace ScenesBrowser
                 // Get scenes name
                 var _Name = ScenesBrowserExtender.Between(_Path, "Scenes/", ".unity");
                 // We don't have this ??
-                // if (!_SceneDictionary.ContainsKey(_Path))
-                // Add it
-                // _SceneDictionary.Add(_Path, AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path));
-
                 if (!ScenesBrowserExtender.IsContainScene(AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path)))
                 {
                     // Create a new 
                     var _NewScene = new SBScene(_Path, AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path), false);
-                    // We don't have this ??
+                    // Add it
                     ScenesBrowserExtender.AddScene(_NewScene);
                 }
             }

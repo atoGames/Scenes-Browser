@@ -17,19 +17,18 @@ namespace ScenesBrowser
         /// </summary>
         public static void AddScene(SBScene sbScene) => _SceneList.Add(sbScene);
 
-
         protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
         public static GUIContent[] GetSceneNameAndIcon()
         {
+            _SceneNameAndIcon.Clear();
+
+            // If user delete a scene manually , this scene we be in the list until he click refresh
             foreach (var scene in ScenesBrowserExtender.SceneList)
             {
-                Debug.Log(scene);
-                // if (ScenesBrowserExtender.IsSceneNotNull(scene) && !_SceneNameAndIcon.Contains(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image)))
-                // _SceneNameAndIcon.Add(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
-                if (scene != null)
+                if (scene.Scene != null)
                     _SceneNameAndIcon.Add(new GUIContent(scene?.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
             }
-
+            // Return an array
             return _SceneNameAndIcon.ToArray();
         }
 
