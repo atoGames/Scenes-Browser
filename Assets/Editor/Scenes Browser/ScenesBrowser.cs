@@ -43,7 +43,7 @@ namespace ScenesBrowser
         protected float _ButtonSize = 122f;
         // Use this to save / remove / order
         // Key is the path of the scene , value is the scene it's self
-        protected static Dictionary<string, SceneAsset> _SceneDictionary = new Dictionary<string, SceneAsset>();
+        // protected static Dictionary<string, SceneAsset> _SceneDictionary = new Dictionary<string, SceneAsset>();
 
         [MenuItem("Scenes Browser/Settings %E")]
         public static void ShowScenesBrowserSettings()
@@ -158,11 +158,12 @@ namespace ScenesBrowser
             _SettingWindowSceneStyle.padding = new RectOffset(10, 10, 10, 10);
 
             var yPos = 0f;
-            var xTipSize = 35f;
+            var xTipSize = 36f;
             var _Count = 0;
 
 
-            foreach (var scene in _SceneDictionary)
+            // foreach (var scene in _SceneDictionary)
+            foreach (var scene in ScenesBrowserExtender.SceneList)
             {
                 if (_Count >= 4)
                 {
@@ -175,22 +176,21 @@ namespace ScenesBrowser
 
                 GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
                 // Get scene name
-                var _SceneName = scene.Value?.name;
+                // var _SceneName = scene.Value?.name;
+                var _SceneName = scene.Scene.name;
                 // Draw button for the scene > What we want to do with it ?
                 if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
                 {
                     Debug.Log(_SceneName);
                 }
                 // Draw more choice under scene..
-
-                // if (GUI.Button(new Rect((xTipSize) * i, _ButtonSize - 22, xTipSize, 22), i.ToString()))
-                using (var _SelectPath = new EditorGUILayout.HorizontalScope())
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button("1", GUILayout.MaxWidth(xTipSize)))
+                    if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("animationvisibilitytoggleon@2x").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
                         Debug.Log("1");
-                    if (GUILayout.Button("1", GUILayout.MaxWidth(xTipSize)))
+                    if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
                         Debug.Log("1");
-                    if (GUILayout.Button("1", GUILayout.MaxWidth(xTipSize)))
+                    if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
                         Debug.Log("1");
                 }
                 //
@@ -249,15 +249,10 @@ namespace ScenesBrowser
 
         private static void DrawScenesOnToolbar()
         {
-            var _SceneNameAndIcon = new List<GUIContent>();
+            var _SceneArray = ScenesBrowserExtender.GetSceneNameAndIcon();
 
-            foreach (var scene in _SceneDictionary)
-            {
-                if (ScenesBrowserExtender.IsSceneNotNull(scene) && !_SceneNameAndIcon.Contains(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image)))
-                    _SceneNameAndIcon.Add(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
-            }
             // Scene on Tool bar
-            _SelectedScene = GUILayout.Toolbar(_SelectedScene, _SceneNameAndIcon.ToArray(), GUILayout.MaxWidth(_Width * _SceneNameAndIcon.Count), GUILayout.MaxHeight(_Heigth));
+            _SelectedScene = GUILayout.Toolbar(_SelectedScene, _SceneArray, GUILayout.MaxWidth(_Width * _SceneArray.Length), GUILayout.MaxHeight(_Heigth));
 
             // Is not thie same scene ? load the new scene
             if (_SelectedScene != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsSaveWindwoOpen)
@@ -288,7 +283,8 @@ namespace ScenesBrowser
             // Save prev scene index
             _DataSettings.m_PreviousScenesToolbarGridSize = index;
             // Open scene
-            EditorSceneManager.OpenScene(_SceneDictionary.ElementAt(_DataSettings.m_PreviousScenesToolbarGridSize).Key);
+            // EditorSceneManager.OpenScene(_SceneDictionary.ElementAt(_DataSettings.m_PreviousScenesToolbarGridSize).Key);
+            EditorSceneManager.OpenScene(ScenesBrowserExtender.SceneList[index].ScenePath);
         }
         /// <summary>
         /// Settings and refresh buttons
@@ -312,7 +308,9 @@ namespace ScenesBrowser
         private static void UpdateSceneInDictionary()
         {
             // Clear prev scene
-            _SceneDictionary.Clear();
+            // _SceneDictionary.Clear();
+            ScenesBrowserExtender.SceneList.Clear();
+
             // If Auto find scenes active > Find all scene in this ptoject
             if (_DataSettings.m_AutoFindScene)
                 _GetAllScenesInProject = Directory.GetFiles(Application.dataPath, _FilterBy, SearchOption.AllDirectories);
@@ -332,9 +330,17 @@ namespace ScenesBrowser
                 // Get scenes name
                 var _Name = ScenesBrowserExtender.Between(_Path, "Scenes/", ".unity");
                 // We don't have this ??
-                if (!_SceneDictionary.ContainsKey(_Path))
-                    // Add it
-                    _SceneDictionary.Add(_Path, AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path));
+                // if (!_SceneDictionary.ContainsKey(_Path))
+                // Add it
+                // _SceneDictionary.Add(_Path, AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path));
+
+                if (!ScenesBrowserExtender.IsContainScene(AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path)))
+                {
+                    // Create a new 
+                    var _NewScene = new SBScene(_Path, AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path), false);
+                    // We don't have this ??
+                    ScenesBrowserExtender.AddScene(_NewScene);
+                }
             }
         }
 

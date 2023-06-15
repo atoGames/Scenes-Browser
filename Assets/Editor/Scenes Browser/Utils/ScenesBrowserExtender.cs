@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -7,6 +8,32 @@ namespace ScenesBrowser
 {
     public class ScenesBrowserExtender
     {
+        // List of all scenes
+        protected static List<SBScene> _SceneList = new();
+        public static List<SBScene> SceneList { get => _SceneList; }
+        public static bool IsContainScene(SceneAsset scene) => _SceneList.Find(c => c.Scene == scene) != null;
+        /// <summary>
+        /// Add scene
+        /// </summary>
+        public static void AddScene(SBScene sbScene) => _SceneList.Add(sbScene);
+
+
+        protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
+        public static GUIContent[] GetSceneNameAndIcon()
+        {
+            foreach (var scene in ScenesBrowserExtender.SceneList)
+            {
+                Debug.Log(scene);
+                // if (ScenesBrowserExtender.IsSceneNotNull(scene) && !_SceneNameAndIcon.Contains(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image)))
+                // _SceneNameAndIcon.Add(new GUIContent(scene.Value.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
+                if (scene != null)
+                    _SceneNameAndIcon.Add(new GUIContent(scene?.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
+            }
+
+            return _SceneNameAndIcon.ToArray();
+        }
+
+
         // Create a new data to save the settings
         public static SBD CreateNewData(string path)
         {
@@ -30,7 +57,7 @@ namespace ScenesBrowser
                 // Don't show full path .. just (Assets/..)
                 _DataSettings.m_ScenePath = (_ScenePath.Contains("Assets")) ? _ScenePath.Substring(_ScenePath.IndexOf("Assets")) : path;
         }
-        public static bool IsSceneNotNull(KeyValuePair<string, SceneAsset> scene) => scene.Value != null;
+        public static bool IsSceneNotNull(string path) => _SceneList.Find(p => p.ScenePath == path) != null;
         public static Texture2D CreateNewTexture2D(int width, int height, Color col)
         {
             Color[] pix = new Color[width * height];
