@@ -148,11 +148,8 @@ namespace ScenesBrowser
             GUI.BeginGroup(new Rect(2.5f, 55, Screen.width, Screen.height));
             var _Position = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
             var _View = new Rect(0, 0, Screen.width - 25, Screen.height  /* * (_SceneDictionary.Count / 5) */);
-            // Draw scenes
-            // using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPositionOnSettingsWindow))
-
+            // Begin scroll view
             _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_Position, _ScrollPositionOnSettingsWindow, _View, false, false);
-            // _ScrollPositionOnSettingsWindow = scrollView.scrollPosition;
 
             // Setting window scene style
             var _SettingWindowSceneStyle = new GUIStyle("Button");
@@ -196,11 +193,8 @@ namespace ScenesBrowser
                     if (GUILayout.Button("1", GUILayout.MaxWidth(xTipSize)))
                         Debug.Log("1");
                 }
-
-
+                //
                 GUILayout.EndArea();
-
-
                 _Count++;
             }
             GUI.EndScrollView();
@@ -213,13 +207,7 @@ namespace ScenesBrowser
                 EditorUtility.SetDirty(_DataSettings);
                 AssetDatabase.SaveAssets();
             }
-            /*   if (GUILayout.Button(new GUIContent(" Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Height(_Heigth + 10)))
-              {
-                
-              } */
-
             GUI.EndGroup();
-
         }
 
         /// <summary>
