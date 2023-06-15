@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d7341a49a6a9944daa93edad0fefebd, type: 3}
   m_Name: Data
   m_EditorClassIdentifier: 
-  m_PreviousScenesToolbarGridSize: 3
+  m_PreviousScenesToolbarGridSize: 1
   m_AutoFindScene: 1
   m_IsLeft: 0
-  m_ShowQuickAccess: 0
+  m_ShowQuickAccess: 1
   m_ScenePath: 

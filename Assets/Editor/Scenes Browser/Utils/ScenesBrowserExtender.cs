@@ -7,7 +7,6 @@ namespace ScenesBrowser
 {
     public class ScenesBrowserExtender
     {
-
         // Create a new data to save the settings
         public static SBD CreateNewData(string path)
         {
@@ -65,6 +64,12 @@ namespace ScenesBrowser
 
 
             return _GUIContent;
+        }
+
+        public static string Between(string path, string firstStr, string lastStr)
+        {
+            var _Str = path.IndexOf(firstStr) + firstStr.Length;
+            return path.Substring(_Str, path.IndexOf(lastStr) - _Str);
         }
     }
 }

@@ -41,13 +41,9 @@ namespace ScenesBrowser
         #endregion
         protected static Vector2 _ScrollPositionOnSettingsWindow;
         protected float _ButtonSize = 122f;
-
         // Use this to save / remove / order
         // Key is the path of the scene , value is the scene it's self
         protected static Dictionary<string, SceneAsset> _SceneDictionary = new Dictionary<string, SceneAsset>();
-        // Grid thing
-        protected int _ScenesWindowGridSize = 0;
-        protected int _GridCulm = 4;
 
         [MenuItem("Scenes Browser/Settings %E")]
         public static void ShowScenesBrowserSettings()
@@ -58,7 +54,7 @@ namespace ScenesBrowser
             _EditorWindow.maxSize = _WindowSettingsMaxSize;
             _EditorWindow.maximized = false;
         }
-        // Window settings
+        // Get window settings
         protected static EditorWindow GetWindowSettings => EditorWindow.GetWindow(typeof(ScenesBrowser));
 
         [InitializeOnLoadMethod]
@@ -82,19 +78,9 @@ namespace ScenesBrowser
             // select last saved value 
             _SelectedScene = _DataSettings.m_PreviousScenesToolbarGridSize;
             //
-
-
-        }
-        private void OnEnable()
-        {
-            // _SettingsAndRefreshBG ??= CreateNewTexture2D(16, 16, CreateNewColor());
         }
         private void OnGUI()
         {
-            // I test this line
-            // _SettingsData = EditorGUILayout.ObjectField("Select Database Dictionary ", _SettingsData, typeof(SBD), true) as SBD;
-
-
             // No data?
             if (_DataSettings)
             {
@@ -134,8 +120,9 @@ namespace ScenesBrowser
                 {
                     // Left Or Right
                     _DataSettings.m_IsLeft = EditorGUILayout.Toggle(_DataSettings.m_IsLeft, GUILayout.MaxWidth(15));
-                    EditorGUILayout.LabelField(_DataSettings.m_IsLeft ? _ShowToolbarAt + " Left " : _ShowToolbarAt + " Right ", GUILayout.MaxWidth(150));
-
+                    EditorGUILayout.LabelField(_DataSettings.m_IsLeft ? _ShowToolbarAt + " Left " : _ShowToolbarAt + " Right ", GUILayout.MaxWidth(130));
+                    // Draw vertical line
+                    EditorGUILayout.LabelField("", GUI.skin.verticalSlider, GUILayout.MaxWidth(10));
                     // Quick Access
                     _DataSettings.m_ShowQuickAccess = EditorGUILayout.Toggle(_DataSettings.m_ShowQuickAccess, GUILayout.MaxWidth(15));
                     EditorGUILayout.LabelField(_DataSettings.m_ShowQuickAccess ? " Hide Quick Access " : " Show Quick Access ", GUILayout.MaxWidth(128));
@@ -158,7 +145,7 @@ namespace ScenesBrowser
         {
 
             // using (var _ShowSceneOnWindow = new EditorGUILayout.HorizontalScope(GUI.skin.box))
-            GUI.BeginGroup(new Rect(2.5f, 52, Screen.width, Screen.height));
+            GUI.BeginGroup(new Rect(2.5f, 55, Screen.width, Screen.height));
             var _Position = new Rect(0, 0, Screen.width - 10, Screen.height - 120);
             var _View = new Rect(0, 0, Screen.width - 25, Screen.height  /* * (_SceneDictionary.Count / 5) */);
             // Draw scenes
@@ -166,6 +153,12 @@ namespace ScenesBrowser
 
             _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_Position, _ScrollPositionOnSettingsWindow, _View, false, false);
             // _ScrollPositionOnSettingsWindow = scrollView.scrollPosition;
+
+            // Setting window scene style
+            var _SettingWindowSceneStyle = new GUIStyle("Button");
+            _SettingWindowSceneStyle.alignment = TextAnchor.LowerCenter;
+            _SettingWindowSceneStyle.imagePosition = ImagePosition.ImageAbove;
+            _SettingWindowSceneStyle.padding = new RectOffset(10, 10, 10, 10);
 
             var yPos = 0f;
             var _Count = 0;
@@ -179,16 +172,32 @@ namespace ScenesBrowser
                 }
                 var xPos = _ButtonSize * _Count;
 
+                var _ButtonRect = new Rect(xPos, yPos, _ButtonSize, _ButtonSize);
+
+                GUILayout.BeginArea(_ButtonRect);
+                // Get scene name
                 var _SceneName = scene.Value?.name;
-                if (GUI.Button(new Rect(xPos, yPos, _ButtonSize, _ButtonSize), _SceneName))
+                // Draw button for the scene
+                if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
+                {
                     Debug.Log(_SceneName);
+                }
+                /*   if (GUI.Button(new Rect(0, _ButtonSize, 26, 26), "Test"))
+                  {
+                      Debug.Log("Test");
+                  }*/
+                _SelectedSceneTest = GUILayout.Toolbar(_SelectedSceneTest, toolbarStrings);
+                GUILayout.EndArea();
+
+
                 _Count++;
             }
             GUI.EndScrollView();
 
             // Save button
-            if (GUI.Button(new Rect(0, Screen.height - 110, Screen.width - 25, 26), "Save"))
+            if (GUI.Button(new Rect(0, Screen.height - 110, Screen.width - 25, 26), new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image)))
             {
+
                 ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
                 EditorUtility.SetDirty(_DataSettings);
                 AssetDatabase.SaveAssets();
@@ -201,6 +210,8 @@ namespace ScenesBrowser
             GUI.EndGroup();
 
         }
+        int _SelectedSceneTest = 0;
+        string[] toolbarStrings = { "1", "2", "3" };
         /// <summary>
         /// On toolbar gui
         /// </summary>
@@ -208,12 +219,12 @@ namespace ScenesBrowser
         {
             // Is show quick access true ?
             if (_DataSettings.m_ShowQuickAccess)
-                DrawScenesOnToolbar();
+                ShowScenesOnToolbar();
         }
         /// <summary>
         /// Draw scenes on toolbar
         /// </summary>
-        public static void DrawScenesOnToolbar()
+        public static void ShowScenesOnToolbar()
         {
             // Settings and refresh button
             SettingsAndRefreshButton();
@@ -233,12 +244,12 @@ namespace ScenesBrowser
                         Event.current.Use();
                     }
                 }
-                ShowScenesOnTopBar();
+                DrawScenesOnToolbar();
             }
             EditorGUILayout.EndScrollView();
         }
 
-        private static void ShowScenesOnTopBar()
+        private static void DrawScenesOnToolbar()
         {
             var _SceneNameAndIcon = new List<GUIContent>();
 
@@ -281,10 +292,13 @@ namespace ScenesBrowser
             // Open scene
             EditorSceneManager.OpenScene(_SceneDictionary.ElementAt(_DataSettings.m_PreviousScenesToolbarGridSize).Key);
         }
+        /// <summary>
+        /// Settings and refresh buttons
+        /// </summary>
         private static void SettingsAndRefreshButton()
         {
             // Settings && Refresh
-            using (var scenes = new EditorGUILayout.HorizontalScope(SceneStyles.SettingsAndRefreshStyle(), GUILayout.Width(_WidthSettingsAndRefreshBG)))
+            using (var scenes = new EditorGUILayout.HorizontalScope(GUILayout.Width(_WidthSettingsAndRefreshBG)))
             {
                 // Open settings
                 if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("EditorSettings Icon").image), GUILayout.Width(_WidthSettingsAndRefreshBG), GUILayout.Height(_HeigthSettingsAndRefreshBG)))
@@ -318,19 +332,14 @@ namespace ScenesBrowser
                 // Get path
                 var _Path = sc.Replace("\\", "/").Replace(Application.dataPath, "Assets");
                 // Get scenes name
-                var _Name = Between(_Path, "Scenes/", ".unity");
+                var _Name = ScenesBrowserExtender.Between(_Path, "Scenes/", ".unity");
                 // We don't have this ??
                 if (!_SceneDictionary.ContainsKey(_Path))
                     // Add it
                     _SceneDictionary.Add(_Path, AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path));
             }
+        }
 
-        }
-        private static string Between(string path, string firstStr, string lastStr)
-        {
-            var _Str = path.IndexOf(firstStr) + firstStr.Length;
-            return path.Substring(_Str, path.IndexOf(lastStr) - _Str);
-        }
         /// <summary>
         /// Setup settings data
         /// </summary>
