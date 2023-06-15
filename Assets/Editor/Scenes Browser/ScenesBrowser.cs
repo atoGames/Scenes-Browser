@@ -146,7 +146,7 @@ namespace ScenesBrowser
 
             // using (var _ShowSceneOnWindow = new EditorGUILayout.HorizontalScope(GUI.skin.box))
             GUI.BeginGroup(new Rect(2.5f, 55, Screen.width, Screen.height));
-            var _Position = new Rect(0, 0, Screen.width - 10, Screen.height - 120);
+            var _Position = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
             var _View = new Rect(0, 0, Screen.width - 25, Screen.height  /* * (_SceneDictionary.Count / 5) */);
             // Draw scenes
             // using (var scrollView = new EditorGUILayout.ScrollViewScope(_ScrollPositionOnSettingsWindow))
@@ -161,32 +161,43 @@ namespace ScenesBrowser
             _SettingWindowSceneStyle.padding = new RectOffset(10, 10, 10, 10);
 
             var yPos = 0f;
+            var xTipSize = 35f;
             var _Count = 0;
+
 
             foreach (var scene in _SceneDictionary)
             {
                 if (_Count >= 4)
                 {
-                    yPos += _ButtonSize;
+                    yPos += _ButtonSize + 5;
                     _Count = 0;
                 }
-                var xPos = _ButtonSize * _Count;
+                var xPos = (_ButtonSize + 2) * _Count;
 
                 var _ButtonRect = new Rect(xPos, yPos, _ButtonSize, _ButtonSize);
 
-                GUILayout.BeginArea(_ButtonRect);
+                GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
                 // Get scene name
                 var _SceneName = scene.Value?.name;
-                // Draw button for the scene
+                // Draw button for the scene > What we want to do with it ?
                 if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
                 {
                     Debug.Log(_SceneName);
                 }
-                /*   if (GUI.Button(new Rect(0, _ButtonSize, 26, 26), "Test"))
-                  {
-                      Debug.Log("Test");
-                  }*/
-                _SelectedSceneTest = GUILayout.Toolbar(_SelectedSceneTest, toolbarStrings);
+                // Draw more choice under scene..
+
+                // if (GUI.Button(new Rect((xTipSize) * i, _ButtonSize - 22, xTipSize, 22), i.ToString()))
+                using (var _SelectPath = new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("1", GUILayout.MaxWidth(xTipSize)))
+                        Debug.Log("1");
+                    if (GUILayout.Button("1", GUILayout.MaxWidth(xTipSize)))
+                        Debug.Log("1");
+                    if (GUILayout.Button("1", GUILayout.MaxWidth(xTipSize)))
+                        Debug.Log("1");
+                }
+
+
                 GUILayout.EndArea();
 
 
@@ -210,8 +221,7 @@ namespace ScenesBrowser
             GUI.EndGroup();
 
         }
-        int _SelectedSceneTest = 0;
-        string[] toolbarStrings = { "1", "2", "3" };
+
         /// <summary>
         /// On toolbar gui
         /// </summary>
