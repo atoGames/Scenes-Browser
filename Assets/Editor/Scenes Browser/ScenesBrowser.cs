@@ -268,12 +268,15 @@ namespace ScenesBrowser
             _SelectedScene = GUILayout.Toolbar(_SelectedScene, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
 
             var _ActiveSceneStyle = new GUIStyle(GUI.skin.horizontalScrollbar);
-            _ActiveSceneTexture = null ?? ScenesBrowserExtender.CreateNewTexture2D(1, 1, Color.white);
+            _ActiveSceneTexture = null ?? ScenesBrowserExtender.CreateNewTexture2D(1, 1, ScenesBrowserExtender.CreateNewColor("D9D9D9"));
             _ActiveSceneStyle.normal.background = _ActiveSceneTexture;
             _ActiveSceneStyle.fixedHeight = 4;
-            // _ActiveSceneStyle.border = new RectOffset(1, 1, 1, 1);
 
-            GUI.Label(new Rect(_SceneAndIconArray.Length / 2 + (_Width * _SelectedScene), _Heigth + 1, _Width - 5, _Heigth), "", _ActiveSceneStyle);
+            // var _StartAt = _SelectedScene == 0 ? 5f : 4.5f;
+            var _xPos = 3 + _Width * _SelectedScene;
+            var _yPos = _Heigth;
+
+            GUI.Label(new Rect(_xPos, _yPos, _Width / 2, _Heigth), "", _ActiveSceneStyle);
             // EditorGUILayout.LabelField("", GUI.skin.horizontalScrollbar, GUILayout.MaxWidth(26));
 
 
