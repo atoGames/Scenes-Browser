@@ -148,7 +148,7 @@ namespace ScenesBrowser
             GUI.BeginGroup(new Rect(2.5f, 55, Screen.width, Screen.height));
             var _ScrollViewPosition = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
 
-            var _ScrollView = new Rect(0, 0, Screen.width - 25, (_ButtonSize + 35) * ScenesBrowserExtender.SceneList.Count / 4);
+            var _ScrollView = new Rect(0, 0, Screen.width - 25, (_ButtonSize + 40) * ScenesBrowserExtender.SceneList.Count / 5);
             Debug.Log(_ScrollViewPosition + " | " + _ScrollView + " | " + ScenesBrowserExtender.SceneList.Count);
             // Begin scroll view
             _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_ScrollViewPosition, _ScrollPositionOnSettingsWindow, _ScrollView, false, false);
