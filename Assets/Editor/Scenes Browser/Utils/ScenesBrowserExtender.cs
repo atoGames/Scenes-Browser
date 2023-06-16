@@ -26,7 +26,16 @@ namespace ScenesBrowser
             foreach (var scene in ScenesBrowserExtender.SceneList)
             {
                 if (scene.Scene != null)
-                    _SceneNameAndIcon.Add(new GUIContent(scene?.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
+                {
+                    var _C = new GUIContent(scene?.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image);
+                    if (!scene.Hide)
+                        _SceneNameAndIcon.Add(_C);
+                    else
+                    {
+                        if (_SceneNameAndIcon.Contains(_C))
+                            _SceneNameAndIcon.Remove(_C);
+                    }
+                }
             }
             // Return an array
             return _SceneNameAndIcon.ToArray();
@@ -47,8 +56,6 @@ namespace ScenesBrowser
             // If path null-Empty return
             if (path == string.Empty)
                 return;
-            // Curent project path
-            // var _CurrentProjectPath = path + "/Assets";
             // Return the full path
             var _ScenePath = EditorUtility.OpenFolderPanel("Select Scenes Folder", path, "Scenes");
             // Path not null ?

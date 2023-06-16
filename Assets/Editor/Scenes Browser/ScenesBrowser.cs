@@ -17,7 +17,7 @@ namespace ScenesBrowser
     {
         protected static readonly GUIContent _WindowName = EditorGUIUtility.TrTextContent("Scenes Browser - Settings");
         protected static EditorWindow _EditorWindow;
-        protected static Vector2 _WindowSettingsMaxSize = new Vector2(512, 256);
+        protected static Vector2 _WindowSettingsMaxSize = new Vector2(512, 350);
         // protected static List<SceneAsset> m_SceneAssets = new List<SceneAsset>();
         //
         protected static float _Width = 128, _Heigth = 20;
@@ -116,7 +116,7 @@ namespace ScenesBrowser
 
                 // EditorGUILayout.Space(3);
                 // Show Scene At Left Or Right
-                using (var _ShowSceneAtLeftOrRight = new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+                using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
                 {
                     // Left Or Right
                     _DataSettings.m_IsLeft = EditorGUILayout.Toggle(_DataSettings.m_IsLeft, GUILayout.MaxWidth(15));
@@ -146,10 +146,12 @@ namespace ScenesBrowser
 
             // using (var _ShowSceneOnWindow = new EditorGUILayout.HorizontalScope(GUI.skin.box))
             GUI.BeginGroup(new Rect(2.5f, 55, Screen.width, Screen.height));
-            var _Position = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
-            var _View = new Rect(0, 0, Screen.width - 25, _Position.height * (ScenesBrowserExtender.SceneList.Count / 4));
+            var _ScrollViewPosition = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
+
+            var _ScrollView = new Rect(0, 0, Screen.width - 25, _ScrollViewPosition.height * _ButtonSize / 4);
+            Debug.Log(_ScrollViewPosition + " | " + _ScrollView);
             // Begin scroll view
-            _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_Position, _ScrollPositionOnSettingsWindow, _View, false, false);
+            _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_ScrollViewPosition, _ScrollPositionOnSettingsWindow, _ScrollView, false, false);
 
             // Setting window scene style
             var _SettingWindowSceneStyle = new GUIStyle("Button");
@@ -165,37 +167,44 @@ namespace ScenesBrowser
             // foreach (var scene in _SceneDictionary)
             foreach (var scene in ScenesBrowserExtender.SceneList)
             {
-                if (_Count >= 4)
+                if (scene.Scene != null)
                 {
-                    yPos += _ButtonSize + 5;
-                    _Count = 0;
-                }
-                var xPos = (_ButtonSize + 2) * _Count;
+                    if (_Count >= 4)
+                    {
+                        yPos += _ButtonSize + 5;
+                        _Count = 0;
+                    }
+                    var xPos = (_ButtonSize + 2) * _Count;
 
-                var _ButtonRect = new Rect(xPos, yPos, _ButtonSize, _ButtonSize);
+                    var _ButtonRect = new Rect(xPos, yPos, _ButtonSize, _ButtonSize);
 
-                GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
-                // Get scene name
-                // var _SceneName = scene.Value?.name;
-                var _SceneName = scene.Scene.name;
-                // Draw button for the scene > What we want to do with it ?
-                if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
-                {
-                    Debug.Log(_SceneName);
+                    GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
+                    // Get scene name
+                    // var _SceneName = scene.Value?.name;
+                    var _SceneName = scene.Scene.name;
+                    // Draw button for the scene > What we want to do with it ?
+                    if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
+                    {
+                        Debug.Log(_SceneName);
+                    }
+                    // Draw more choice under scene..
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
+                        {
+                            scene.Hide = !scene.Hide;
+                        }
+                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
+                            Debug.Log("1");
+                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
+                            Debug.Log("1");
+                    }
+                    //
+                    GUILayout.EndArea();
+                    _Count++;
                 }
-                // Draw more choice under scene..
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("animationvisibilitytoggleon@2x").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
-                        Debug.Log("1");
-                    if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
-                        Debug.Log("1");
-                    if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
-                        Debug.Log("1");
-                }
-                //
-                GUILayout.EndArea();
-                _Count++;
+                /*   else // This scene has been delete ... remove it
+                      ScenesBrowserExtender.SceneList.Remove(scene); */
             }
             GUI.EndScrollView();
 
@@ -282,7 +291,6 @@ namespace ScenesBrowser
             // Save prev scene index
             _DataSettings.m_PreviousScenesToolbarGridSize = index;
             // Open scene
-            // EditorSceneManager.OpenScene(_SceneDictionary.ElementAt(_DataSettings.m_PreviousScenesToolbarGridSize).Key);
             EditorSceneManager.OpenScene(ScenesBrowserExtender.SceneList[index].ScenePath);
         }
         /// <summary>
@@ -307,7 +315,7 @@ namespace ScenesBrowser
         private static void UpdateSceneInDictionary()
         {
             // Clear prev scene
-            ScenesBrowserExtender.SceneList.Clear();
+            // ScenesBrowserExtender.SceneList.Clear();
 
             Debug.Log("Update Scene In Dictionary");
 
@@ -328,12 +336,13 @@ namespace ScenesBrowser
                 // Get path
                 var _Path = sc.Replace("\\", "/").Replace(Application.dataPath, "Assets");
                 // Get scenes name
-                var _Name = ScenesBrowserExtender.Between(_Path, "Scenes/", ".unity");
+                // var _Name = ScenesBrowserExtender.Between(_Path, "Scenes/", ".unity");
+                var _Scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path);
                 // We don't have this ??
-                if (!ScenesBrowserExtender.IsContainScene(AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path)))
+                if (!ScenesBrowserExtender.IsContainScene(_Scene))
                 {
                     // Create a new 
-                    var _NewScene = new SBScene(_Path, AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path), false);
+                    var _NewScene = new SBScene(_Path, AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path));
                     // Add it
                     ScenesBrowserExtender.AddScene(_NewScene);
                 }
