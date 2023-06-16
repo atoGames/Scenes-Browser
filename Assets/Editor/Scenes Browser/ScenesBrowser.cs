@@ -15,6 +15,7 @@ namespace ScenesBrowser
 {
     public class ScenesBrowser : EditorWindow
     {
+
         protected static readonly GUIContent _WindowName = EditorGUIUtility.TrTextContent("Scenes Browser - Settings");
         protected static EditorWindow _EditorWindow;
         protected static Vector2 _WindowSettingsMaxSize = new Vector2(512, 350);
@@ -41,6 +42,8 @@ namespace ScenesBrowser
         #endregion
         protected static Vector2 _ScrollPositionOnSettingsWindow;
         protected float _ButtonSize = 122f;
+        private static Texture2D _ActiveSceneTexture;
+
         // Use this to save / remove / order
         // Key is the path of the scene , value is the scene it's self
         // protected static Dictionary<string, SceneAsset> _SceneDictionary = new Dictionary<string, SceneAsset>();
@@ -263,6 +266,17 @@ namespace ScenesBrowser
             Debug.Log("DrawScenesOnToolbar");
             // Scene on Tool bar
             _SelectedScene = GUILayout.Toolbar(_SelectedScene, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
+
+            var _ActiveSceneStyle = new GUIStyle(GUI.skin.horizontalScrollbar);
+            _ActiveSceneTexture = null ?? ScenesBrowserExtender.CreateNewTexture2D(1, 1, Color.white);
+            _ActiveSceneStyle.normal.background = _ActiveSceneTexture;
+            _ActiveSceneStyle.fixedHeight = 4;
+            // _ActiveSceneStyle.border = new RectOffset(1, 1, 1, 1);
+
+            GUI.Label(new Rect(_SceneAndIconArray.Length / 2 + (_Width * _SelectedScene), _Heigth + 1, _Width - 5, _Heigth), "", _ActiveSceneStyle);
+            // EditorGUILayout.LabelField("", GUI.skin.horizontalScrollbar, GUILayout.MaxWidth(26));
+
+
 
             // Is not thie same scene ? load the new scene
             if (_SelectedScene != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsSaveWindwoOpen)
