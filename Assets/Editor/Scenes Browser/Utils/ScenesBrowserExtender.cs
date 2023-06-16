@@ -25,18 +25,15 @@ namespace ScenesBrowser
             // If user delete a scene manually , this scene we be in the list until he click refresh
             foreach (var scene in ScenesBrowserExtender.SceneList)
             {
-                if (scene.Scene != null)
+                if (scene.Scene)
                 {
-                    var _C = new GUIContent(scene?.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image);
+                    // Scene hide not true  
                     if (!scene.Hide)
-                        _SceneNameAndIcon.Add(_C);
-                    else
-                    {
-                        if (_SceneNameAndIcon.Contains(_C))
-                            _SceneNameAndIcon.Remove(_C);
-                    }
+                        _SceneNameAndIcon.Add(new GUIContent(scene.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
                 }
             }
+            Debug.Log("GetSceneNameAndIcon");
+
             // Return an array
             return _SceneNameAndIcon.ToArray();
         }

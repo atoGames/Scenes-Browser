@@ -146,21 +146,20 @@ namespace ScenesBrowser
 
             // using (var _ShowSceneOnWindow = new EditorGUILayout.HorizontalScope(GUI.skin.box))
             GUI.BeginGroup(new Rect(2.5f, 55, Screen.width, Screen.height));
+            // Set scroll view : position
             var _ScrollViewPosition = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
-
+            // Set scroll view : contetn view
             var _ScrollView = new Rect(0, 0, Screen.width - 25, (_ButtonSize + 40) * ScenesBrowserExtender.SceneList.Count / 5);
-            Debug.Log(_ScrollViewPosition + " | " + _ScrollView + " | " + ScenesBrowserExtender.SceneList.Count);
             // Begin scroll view
             _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_ScrollViewPosition, _ScrollPositionOnSettingsWindow, _ScrollView, false, false);
-
-            // Setting window scene style
+            // Setting window scene style > TODO: Move this 
             var _SettingWindowSceneStyle = new GUIStyle("Button");
             _SettingWindowSceneStyle.alignment = TextAnchor.LowerCenter;
             _SettingWindowSceneStyle.imagePosition = ImagePosition.ImageAbove;
             _SettingWindowSceneStyle.padding = new RectOffset(10, 10, 10, 10);
 
             var yPos = 0f;
-            var xTipSize = 36f;
+            var _ChoiceWidth = 36f;
             var _Count = 0;
 
 
@@ -190,13 +189,15 @@ namespace ScenesBrowser
                     // Draw more choice under scene..
                     using (new EditorGUILayout.HorizontalScope())
                     {
-                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
+                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                         {
                             scene.Hide = !scene.Hide;
+
+                            ShowScenesOnToolbar();
                         }
-                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
+                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                             Debug.Log("1");
-                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(xTipSize), GUILayout.MaxHeight((xTipSize + 2) / 2)))
+                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                             Debug.Log("1");
                     }
                     //
@@ -259,6 +260,7 @@ namespace ScenesBrowser
         private static void DrawScenesOnToolbar()
         {
             var _SceneAndIconArray = ScenesBrowserExtender.GetSceneNameAndIcon();
+            Debug.Log("DrawScenesOnToolbar");
             // Scene on Tool bar
             _SelectedScene = GUILayout.Toolbar(_SelectedScene, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
 
