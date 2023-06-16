@@ -148,8 +148,8 @@ namespace ScenesBrowser
             GUI.BeginGroup(new Rect(2.5f, 55, Screen.width, Screen.height));
             var _ScrollViewPosition = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
 
-            var _ScrollView = new Rect(0, 0, Screen.width - 25, _ScrollViewPosition.height * _ButtonSize / 4);
-            Debug.Log(_ScrollViewPosition + " | " + _ScrollView);
+            var _ScrollView = new Rect(0, 0, Screen.width - 25, (_ButtonSize + 35) * ScenesBrowserExtender.SceneList.Count / 4);
+            Debug.Log(_ScrollViewPosition + " | " + _ScrollView + " | " + ScenesBrowserExtender.SceneList.Count);
             // Begin scroll view
             _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_ScrollViewPosition, _ScrollPositionOnSettingsWindow, _ScrollView, false, false);
 
@@ -315,7 +315,12 @@ namespace ScenesBrowser
         private static void UpdateSceneInDictionary()
         {
             // Clear prev scene
-            // ScenesBrowserExtender.SceneList.Clear();
+
+            for (int i = ScenesBrowserExtender.SceneList.Count - 1; i >= 0; i--)
+            {
+                if (ScenesBrowserExtender.SceneList[i].Scene == null)
+                    ScenesBrowserExtender.SceneList.RemoveAt(i);
+            }
 
             Debug.Log("Update Scene In Dictionary");
 

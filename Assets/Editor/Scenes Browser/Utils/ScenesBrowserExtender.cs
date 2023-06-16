@@ -10,7 +10,7 @@ namespace ScenesBrowser
     {
         // List of all scenes
         protected static List<SBScene> _SceneList = new();
-        public static List<SBScene> SceneList { get => _SceneList; }
+        public static List<SBScene> SceneList { get => _SceneList; /* set => _SceneList = value; */ }
         public static bool IsContainScene(SceneAsset scene) => _SceneList.Find(c => c.Scene == scene) != null;
         /// <summary>
         /// Add scene
