@@ -25,7 +25,33 @@ namespace ScenesBrowser
         /// Add scene
         /// </summary>
         public void AddScene(SBScene sbScene) => _SceneList.Add(sbScene);
+
         public bool IsSceneNotNull(string path) => _SceneList.Find(p => p.ScenePath == path) != null;
+
+        public int GetActiveScene(int index)
+        {
+            var _CurrentIndex = index;
+            // Deactivate all scene
+            for (var i = 0; i < _SceneList.Count; i++)
+                _SceneList[i].Active = false;
+
+            // The scene we call is hiding ? Get another scene
+            if (_SceneList[_CurrentIndex].Hide)
+            {
+                _CurrentIndex = _SceneList.IndexOf(_SceneList.Find(active => !active.Hide));
+                Debug.Log("This is hideing " + index + " New one : " + _CurrentIndex);
+            }
+            else
+            {
+                // Get scene index if hide false
+                _CurrentIndex = _SceneList.IndexOf(_SceneList[_CurrentIndex]);
+                Debug.Log("This not hideing " + _CurrentIndex);
+            }
+            // Set active scene
+            _SceneList[_CurrentIndex].Active = true;
+
+            return _CurrentIndex;
+        }
 
 
     }

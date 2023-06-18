@@ -13,8 +13,6 @@ public class SBScene
     {
         ScenePath = scenePath;
         Scene = scene;
-
-
     }
 
 }

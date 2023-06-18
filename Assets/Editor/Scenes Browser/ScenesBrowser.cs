@@ -298,29 +298,27 @@ namespace ScenesBrowser
         // Show active scene
         private static void ShowActiveScene()
         {
+            // Style
             _ActiveSceneStyle = null ?? new GUIStyle(GUI.skin.horizontalScrollbar);
             // Create a new texture  
             _ActiveSceneTexture = null ?? ScenesBrowserExtender.CreateNewTexture2D(1, 1, ScenesBrowserExtender.CreateNewColor("D9D9D9"));
+            // Set texture  
             _ActiveSceneStyle.normal.background = _ActiveSceneTexture;
+            // Set height
             _ActiveSceneStyle.fixedHeight = 4;
 
-            // check 
-            // t:
-            /*  if (_DataSettings.SceneList[_SelectedScene].Hide)
-             {
-                 Debug.Log("This scene not avtive " + _SelectedScene);
-                 var _Scene = _DataSettings.SceneList.Find(ac => !ac.Hide);
-                 Debug.Log(_Scene.Scene.name + " | " + _Scene.Hide);
-                 _SelectedScene = _DataSettings.SceneList.IndexOf(_Scene);
-                 // goto t;
-             } */
-
-            var _StartAt = _SelectedScene == 0 ? 6f : 4f;
-            var _xPos = _StartAt + _Width * _SelectedScene;
+            // Get active scene index
+            var _ActiveSceneIndex = _DataSettings.GetActiveScene(_SelectedScene);
+            // Get start at value
+            var _StartAt = _ActiveSceneIndex == 0 ? 6f : 4f;
+            // X position
+            var _xPos = _StartAt + _Width * _ActiveSceneIndex;
+            // Y position
             var _yPos = _Heigth;
 
-            // Show line under a active scene
+            // Check we have scene + and the scene not hiding 
             if (_DataSettings.SceneList.Count != 0 && !_DataSettings.SceneList.All(a => a.Hide))
+                // Show line under a active scene 
                 GUI.Label(new Rect(_xPos, _yPos, _Width - _StartAt, _Heigth), "", _ActiveSceneStyle);
         }
 
