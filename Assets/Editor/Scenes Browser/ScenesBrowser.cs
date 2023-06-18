@@ -47,7 +47,7 @@ namespace ScenesBrowser
         protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
 
 
-        protected static GUIStyle _ActiveSceneStyle;
+        protected static GUIStyle _ActiveSceneStyle, _SettingWindowSceneStyle;
 
 
         // Use this to save / remove / order
@@ -87,6 +87,9 @@ namespace ScenesBrowser
             // select last saved value 
             _SelectedScene = _DataSettings.m_PreviousScenesToolbarGridSize;
             //
+            OnSceneChange();
+            ShowActiveScene();
+
         }
         private void OnGUI()
         {
@@ -112,7 +115,6 @@ namespace ScenesBrowser
 
                         EditorGUILayout.EndHorizontal();
                     }
-
                 }
 
                 var _ResetContent = ScenesBrowserExtender.GetGUIContent("", "Reset path", new GUIContent(EditorGUIUtility.IconContent("d_Preset.Context")).image);
@@ -152,7 +154,6 @@ namespace ScenesBrowser
         /// </summary>
         private void DrawScenesOnWindowSetting()
         {
-
             // using (var _ShowSceneOnWindow = new EditorGUILayout.HorizontalScope(GUI.skin.box))
             GUI.BeginGroup(new Rect(2.5f, 55, Screen.width, Screen.height));
             // Set scroll view : position
@@ -161,8 +162,8 @@ namespace ScenesBrowser
             var _ScrollView = new Rect(0, 0, Screen.width - 25, (_ButtonSize + 40) * _DataSettings.SceneList.Count / 5);
             // Begin scroll view
             _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_ScrollViewPosition, _ScrollPositionOnSettingsWindow, _ScrollView, false, false);
-            // Setting window scene style > TODO: Move this 
-            var _SettingWindowSceneStyle = new GUIStyle("Button");
+            // Setting window scene style  
+            _SettingWindowSceneStyle = null ?? new GUIStyle("Button");
             _SettingWindowSceneStyle.alignment = TextAnchor.LowerCenter;
             _SettingWindowSceneStyle.imagePosition = ImagePosition.ImageAbove;
             _SettingWindowSceneStyle.padding = new RectOffset(10, 10, 10, 10);
@@ -171,12 +172,10 @@ namespace ScenesBrowser
             var _ChoiceWidth = 36f;
             var _Count = 0;
 
-
-
-
             // foreach (var scene in _SceneDictionary)
             foreach (var scene in _DataSettings.SceneList)
             {
+                // Draw scene 4/4
                 if (scene.Scene != null)
                 {
                     if (_Count >= 4)
@@ -190,20 +189,18 @@ namespace ScenesBrowser
 
                     GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
                     // Get scene name
-                    // var _SceneName = scene.Value?.name;
                     var _SceneName = scene.Scene.name;
                     // Draw button for the scene > What we want to do with it ?
                     if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
-                    {
                         Debug.Log(_SceneName);
-                    }
+
                     // Draw more choice under scene..
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                         {
                             scene.Hide = !scene.Hide;
-
+                            // Invoke("ShowScenesOnToolbar", .1f);
                             ShowScenesOnToolbar();
                         }
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
@@ -215,22 +212,18 @@ namespace ScenesBrowser
                     GUILayout.EndArea();
                     _Count++;
                 }
-                /*   else // This scene has been delete ... remove it
-                      ScenesBrowserExtender.SceneList.Remove(scene); */
             }
+            // End scroll view
             GUI.EndScrollView();
-
             // Save button
             if (GUI.Button(new Rect(0, Screen.height - 110, Screen.width - 25, 26), new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image)))
             {
-
                 ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
                 EditorUtility.SetDirty(_DataSettings);
                 AssetDatabase.SaveAssets();
             }
             GUI.EndGroup();
         }
-
         /// <summary>
         /// On toolbar gui
         /// </summary>
@@ -245,6 +238,8 @@ namespace ScenesBrowser
         /// </summary>
         public static void ShowScenesOnToolbar()
         {
+            Debug.Log("Show scenes on toolbar");
+
             // Settings and refresh button
             SettingsAndRefreshButton();
             // Scroll - all scenes 
@@ -314,8 +309,8 @@ namespace ScenesBrowser
             var _xPos = _StartAt + _Width * _SelectedScene;
             var _yPos = _Heigth;
 
+            // Show line under a active scene
             if (_DataSettings.SceneList.Count != 0 && !_DataSettings.SceneList.All(a => a.Hide))
-                // Show line under a active scene
                 GUI.Label(new Rect(_xPos, _yPos, _Width - _StartAt, _Heigth), "", _ActiveSceneStyle);
         }
 
@@ -350,13 +345,8 @@ namespace ScenesBrowser
         /// </summary>
         private static void UpdateSceneInDictionary()
         {
-            // Clear prev scene
 
-            for (int i = _DataSettings.SceneList.Count - 1; i >= 0; i--)
-            {
-                if (_DataSettings.SceneList[i].Scene == null)
-                    _DataSettings.SceneList.RemoveAt(i);
-            }
+            OnSceneChange();
 
             Debug.Log("Update Scene In Dictionary");
 
@@ -389,6 +379,18 @@ namespace ScenesBrowser
                 }
             }
         }
+        /// <summary>
+        /// Check for any change in scene
+        /// </summary>
+        private static void OnSceneChange()
+        {
+            for (int i = _DataSettings.SceneList.Count - 1; i >= 0; i--)
+            {
+                if (_DataSettings.SceneList[i].Scene == null)
+                    _DataSettings.SceneList.RemoveAt(i);
+            }
+        }
+
         /// <summary>
         /// Setup settings data
         /// </summary>

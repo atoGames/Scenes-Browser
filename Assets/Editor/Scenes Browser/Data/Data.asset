@@ -14,22 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_PreviousScenesToolbarGridSize: 0
   m_AutoFindScene: 1
-  m_IsLeft: 0
+  m_IsLeft: 1
   m_ShowQuickAccess: 1
   m_ScenePath: 
-  _SceneList:
-  - ScenePath: Assets/Scenes/0 2.unity
-    Scene: {fileID: 102900000, guid: 1c377550376ac454d9d523f3bf6cae9d, type: 3}
-    Hide: 0
-  - ScenePath: Assets/Scenes/0 3.unity
-    Scene: {fileID: 102900000, guid: 2dc2eb03bc4cf034c99a9290f40dd4c9, type: 3}
-    Hide: 0
-  - ScenePath: Assets/Scenes/0 4.unity
-    Scene: {fileID: 102900000, guid: 35ce0f16628ca6d45b67b2f1e4dd0466, type: 3}
-    Hide: 1
-  - ScenePath: Assets/Scenes/0 5.unity
-    Scene: {fileID: 102900000, guid: db3295a4da3b0374a8461ccd3891b824, type: 3}
-    Hide: 1
-  - ScenePath: Assets/Scenes/0 12.unity
-    Scene: {fileID: 102900000, guid: e4469929b5708e246a32f92b9997b03d, type: 3}
-    Hide: 1
+  _SceneList: []
