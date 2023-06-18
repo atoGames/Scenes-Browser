@@ -183,8 +183,8 @@ namespace ScenesBrowser
                         yPos += _ButtonSize + 5;
                         _Count = 0;
                     }
-                    var xPos = (_ButtonSize + 2) * _Count;
 
+                    var xPos = (_ButtonSize + 2) * _Count;
                     var _ButtonRect = new Rect(xPos, yPos, _ButtonSize, _ButtonSize);
 
                     GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
@@ -201,7 +201,7 @@ namespace ScenesBrowser
                         {
                             scene.Hide = !scene.Hide;
                             // Invoke("ShowScenesOnToolbar", .1f);
-                            ShowScenesOnToolbar();
+                            // ShowScenesOnToolbar();
                         }
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                             Debug.Log("1");
@@ -234,11 +234,11 @@ namespace ScenesBrowser
                 ShowScenesOnToolbar();
         }
         /// <summary>
-        /// Draw scenes on toolbar
+        /// Show scenes on toolbar
         /// </summary>
         public static void ShowScenesOnToolbar()
         {
-            Debug.Log("Show scenes on toolbar");
+            // Debug.Log("Show scenes on toolbar");
 
             // Settings and refresh button
             SettingsAndRefreshButton();
@@ -295,7 +295,6 @@ namespace ScenesBrowser
                 GUIUtility.ExitGUI();
             }
         }
-
         // Show active scene
         private static void ShowActiveScene()
         {
@@ -304,6 +303,17 @@ namespace ScenesBrowser
             _ActiveSceneTexture = null ?? ScenesBrowserExtender.CreateNewTexture2D(1, 1, ScenesBrowserExtender.CreateNewColor("D9D9D9"));
             _ActiveSceneStyle.normal.background = _ActiveSceneTexture;
             _ActiveSceneStyle.fixedHeight = 4;
+
+            // check 
+            // t:
+            /*  if (_DataSettings.SceneList[_SelectedScene].Hide)
+             {
+                 Debug.Log("This scene not avtive " + _SelectedScene);
+                 var _Scene = _DataSettings.SceneList.Find(ac => !ac.Hide);
+                 Debug.Log(_Scene.Scene.name + " | " + _Scene.Hide);
+                 _SelectedScene = _DataSettings.SceneList.IndexOf(_Scene);
+                 // goto t;
+             } */
 
             var _StartAt = _SelectedScene == 0 ? 6f : 4f;
             var _xPos = _StartAt + _Width * _SelectedScene;
@@ -345,7 +355,7 @@ namespace ScenesBrowser
         /// </summary>
         private static void UpdateSceneInDictionary()
         {
-
+            // On scene change
             OnSceneChange();
 
             Debug.Log("Update Scene In Dictionary");
@@ -389,6 +399,7 @@ namespace ScenesBrowser
                 if (_DataSettings.SceneList[i].Scene == null)
                     _DataSettings.SceneList.RemoveAt(i);
             }
+
         }
 
         /// <summary>

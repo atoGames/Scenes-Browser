@@ -8,6 +8,7 @@ public class SBScene
     public SceneAsset Scene;
     // public int ChoisSelect;
     public bool Hide = false;
+    public bool Active = false;
     public SBScene(string scenePath, SceneAsset scene)
     {
         ScenePath = scenePath;
