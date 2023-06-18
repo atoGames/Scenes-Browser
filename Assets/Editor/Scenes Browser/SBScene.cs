@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEngine;
-
+using System;
+[Serializable]
 public class SBScene
 {
     public string ScenePath;
@@ -11,6 +12,7 @@ public class SBScene
     {
         ScenePath = scenePath;
         Scene = scene;
+
 
     }
 

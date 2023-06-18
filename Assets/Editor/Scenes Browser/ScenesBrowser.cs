@@ -37,12 +37,18 @@ namespace ScenesBrowser
         // Width & Heigth Settings and refresh BG
         protected static int _WidthSettingsAndRefreshBG = 26, _HeigthSettingsAndRefreshBG = 20;
         protected static Action<int> onOpenNewScene;
-        protected static bool _IsSaveWindwoOpen = false;
-        protected static void ResetIsSaveWindwoOpen() => _IsSaveWindwoOpen = false;
+        protected static bool _IsWindwoOpen = false;
+        protected static void ResetIsSaveWindwoOpen() => _IsWindwoOpen = false;
         #endregion
         protected static Vector2 _ScrollPositionOnSettingsWindow;
         protected float _ButtonSize = 122f;
         private static Texture2D _ActiveSceneTexture;
+
+        protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
+
+
+        protected static GUIStyle _ActiveSceneStyle;
+
 
         // Use this to save / remove / order
         // Key is the path of the scene , value is the scene it's self
@@ -152,7 +158,7 @@ namespace ScenesBrowser
             // Set scroll view : position
             var _ScrollViewPosition = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
             // Set scroll view : contetn view
-            var _ScrollView = new Rect(0, 0, Screen.width - 25, (_ButtonSize + 40) * ScenesBrowserExtender.SceneList.Count / 5);
+            var _ScrollView = new Rect(0, 0, Screen.width - 25, (_ButtonSize + 40) * _DataSettings.SceneList.Count / 5);
             // Begin scroll view
             _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_ScrollViewPosition, _ScrollPositionOnSettingsWindow, _ScrollView, false, false);
             // Setting window scene style > TODO: Move this 
@@ -166,8 +172,10 @@ namespace ScenesBrowser
             var _Count = 0;
 
 
+
+
             // foreach (var scene in _SceneDictionary)
-            foreach (var scene in ScenesBrowserExtender.SceneList)
+            foreach (var scene in _DataSettings.SceneList)
             {
                 if (scene.Scene != null)
                 {
@@ -260,32 +268,22 @@ namespace ScenesBrowser
             EditorGUILayout.EndScrollView();
         }
 
+        /// <summary>
+        /// Draw scenes on toolbar
+        /// </summary>
         private static void DrawScenesOnToolbar()
         {
-            var _SceneAndIconArray = ScenesBrowserExtender.GetSceneNameAndIcon();
-            Debug.Log("DrawScenesOnToolbar");
+            var _SceneAndIconArray = GetSceneNameAndIcon();
             // Scene on Tool bar
             _SelectedScene = GUILayout.Toolbar(_SelectedScene, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
 
-            var _ActiveSceneStyle = new GUIStyle(GUI.skin.horizontalScrollbar);
-            _ActiveSceneTexture = null ?? ScenesBrowserExtender.CreateNewTexture2D(1, 1, ScenesBrowserExtender.CreateNewColor("D9D9D9"));
-            _ActiveSceneStyle.normal.background = _ActiveSceneTexture;
-            _ActiveSceneStyle.fixedHeight = 4;
-
-            // var _StartAt = _SelectedScene == 0 ? 5f : 4.5f;
-            var _xPos = 3 + _Width * _SelectedScene;
-            var _yPos = _Heigth;
-
-            GUI.Label(new Rect(_xPos, _yPos, _Width / 2, _Heigth), "", _ActiveSceneStyle);
-            // EditorGUILayout.LabelField("", GUI.skin.horizontalScrollbar, GUILayout.MaxWidth(26));
-
-
+            ShowActiveScene();
 
             // Is not thie same scene ? load the new scene
-            if (_SelectedScene != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsSaveWindwoOpen)
+            if (_SelectedScene != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsWindwoOpen)
             {
                 // So this dumb.. but to make this SaveCurrentModifiedScenesIfUserWantsTo() not show tows >> Fix me or let me alive
-                _IsSaveWindwoOpen = true;
+                _IsWindwoOpen = true;
 
                 // If there unsave change > ask if i want to save , If user click yes
                 if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
@@ -302,6 +300,25 @@ namespace ScenesBrowser
                 GUIUtility.ExitGUI();
             }
         }
+
+        // Show active scene
+        private static void ShowActiveScene()
+        {
+            _ActiveSceneStyle = null ?? new GUIStyle(GUI.skin.horizontalScrollbar);
+            // Create a new texture  
+            _ActiveSceneTexture = null ?? ScenesBrowserExtender.CreateNewTexture2D(1, 1, ScenesBrowserExtender.CreateNewColor("D9D9D9"));
+            _ActiveSceneStyle.normal.background = _ActiveSceneTexture;
+            _ActiveSceneStyle.fixedHeight = 4;
+
+            var _StartAt = _SelectedScene == 0 ? 6f : 4f;
+            var _xPos = _StartAt + _Width * _SelectedScene;
+            var _yPos = _Heigth;
+
+            if (_DataSettings.SceneList.Count != 0 && !_DataSettings.SceneList.All(a => a.Hide))
+                // Show line under a active scene
+                GUI.Label(new Rect(_xPos, _yPos, _Width - _StartAt, _Heigth), "", _ActiveSceneStyle);
+        }
+
         /// <summary>
         /// Open new scene by index
         /// </summary>
@@ -310,7 +327,7 @@ namespace ScenesBrowser
             // Save prev scene index
             _DataSettings.m_PreviousScenesToolbarGridSize = index;
             // Open scene
-            EditorSceneManager.OpenScene(ScenesBrowserExtender.SceneList[index].ScenePath);
+            EditorSceneManager.OpenScene(_DataSettings.SceneList[index].ScenePath);
         }
         /// <summary>
         /// Settings and refresh buttons
@@ -335,10 +352,10 @@ namespace ScenesBrowser
         {
             // Clear prev scene
 
-            for (int i = ScenesBrowserExtender.SceneList.Count - 1; i >= 0; i--)
+            for (int i = _DataSettings.SceneList.Count - 1; i >= 0; i--)
             {
-                if (ScenesBrowserExtender.SceneList[i].Scene == null)
-                    ScenesBrowserExtender.SceneList.RemoveAt(i);
+                if (_DataSettings.SceneList[i].Scene == null)
+                    _DataSettings.SceneList.RemoveAt(i);
             }
 
             Debug.Log("Update Scene In Dictionary");
@@ -363,16 +380,15 @@ namespace ScenesBrowser
                 // var _Name = ScenesBrowserExtender.Between(_Path, "Scenes/", ".unity");
                 var _Scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path);
                 // We don't have this ??
-                if (!ScenesBrowserExtender.IsContainScene(_Scene))
+                if (!_DataSettings.IsContainScene(_Scene))
                 {
                     // Create a new 
                     var _NewScene = new SBScene(_Path, AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path));
                     // Add it
-                    ScenesBrowserExtender.AddScene(_NewScene);
+                    _DataSettings.AddScene(_NewScene);
                 }
             }
         }
-
         /// <summary>
         /// Setup settings data
         /// </summary>
@@ -397,6 +413,25 @@ namespace ScenesBrowser
         {
             Debug.Log("Fun Reset $Remove me");
             _DataSettings.m_ScenePath = "";
+        }
+        public static GUIContent[] GetSceneNameAndIcon()
+        {
+            if (!_DataSettings) return null;
+
+            _SceneNameAndIcon.Clear();
+
+            // If user delete a scene manually , this scene we be in the list until he click refresh
+            foreach (var scene in _DataSettings.SceneList)
+            {
+                if (scene.Scene)
+                {
+                    // Scene hide not true  
+                    if (!scene.Hide)
+                        _SceneNameAndIcon.Add(new GUIContent(scene.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
+                }
+            }
+            // Return an array
+            return _SceneNameAndIcon.ToArray();
         }
 
     }

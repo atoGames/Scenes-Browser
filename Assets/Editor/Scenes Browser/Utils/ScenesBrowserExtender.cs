@@ -8,35 +8,9 @@ namespace ScenesBrowser
 {
     public class ScenesBrowserExtender
     {
-        // List of all scenes
-        protected static List<SBScene> _SceneList = new();
-        public static List<SBScene> SceneList { get => _SceneList; /* set => _SceneList = value; */ }
-        public static bool IsContainScene(SceneAsset scene) => _SceneList.Find(c => c.Scene == scene) != null;
-        /// <summary>
-        /// Add scene
-        /// </summary>
-        public static void AddScene(SBScene sbScene) => _SceneList.Add(sbScene);
+        
 
-        protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
-        public static GUIContent[] GetSceneNameAndIcon()
-        {
-            _SceneNameAndIcon.Clear();
-
-            // If user delete a scene manually , this scene we be in the list until he click refresh
-            foreach (var scene in ScenesBrowserExtender.SceneList)
-            {
-                if (scene.Scene)
-                {
-                    // Scene hide not true  
-                    if (!scene.Hide)
-                        _SceneNameAndIcon.Add(new GUIContent(scene.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
-                }
-            }
-            Debug.Log("GetSceneNameAndIcon");
-
-            // Return an array
-            return _SceneNameAndIcon.ToArray();
-        }
+      
 
 
         // Create a new data to save the settings
@@ -60,7 +34,6 @@ namespace ScenesBrowser
                 // Don't show full path .. just (Assets/..)
                 _DataSettings.m_ScenePath = (_ScenePath.Contains("Assets")) ? _ScenePath.Substring(_ScenePath.IndexOf("Assets")) : path;
         }
-        public static bool IsSceneNotNull(string path) => _SceneList.Find(p => p.ScenePath == path) != null;
         public static Texture2D CreateNewTexture2D(int width, int height, Color col)
         {
             Color[] pix = new Color[width * height];
