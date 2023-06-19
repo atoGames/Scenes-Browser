@@ -19,18 +19,17 @@ namespace ScenesBrowser
         protected static readonly GUIContent _WindowName = EditorGUIUtility.TrTextContent("Scenes Browser - Settings");
         protected static EditorWindow _EditorWindow;
         protected static Vector2 _WindowSettingsMaxSize = new Vector2(512, 350);
-        // protected static List<SceneAsset> m_SceneAssets = new List<SceneAsset>();
-        //
+        // w/h
         protected static float _Width = 128, _Heigth = 20;
         // For filtering scenes
         protected const string _FilterBy = "*.unity";
         private const string _DataSettingsSavePath = "Assets/Editor/Scenes Browser";
-        protected static string[] _GetAllScenesInProject;
-
+        protected static string[] _AllScenesPathInProject;
         // To save stuff
         protected static SBD _DataSettings;
-        #region Top bar 
-        protected static int _SelectedScene = 0;
+
+        #region Toolbar 
+        protected static int _SelectedSceneIndex = 0;
         protected string _ShowToolbarAt = "Show Toolbar At: ";
         // For scroll content 
         protected static Vector2 _ScrollPositionOnToolbar;
@@ -40,19 +39,16 @@ namespace ScenesBrowser
         protected static bool _IsWindwoOpen = false;
         protected static void ResetIsSaveWindwoOpen() => _IsWindwoOpen = false;
         #endregion
+
+        #region  Settings window
+        // Scroll position on settings window
         protected static Vector2 _ScrollPositionOnSettingsWindow;
         protected float _ButtonSize = 122f;
         private static Texture2D _ActiveSceneTexture;
-
         protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
-
-
         protected static GUIStyle _ActiveSceneStyle, _SettingWindowSceneStyle;
 
-
-        // Use this to save / remove / order
-        // Key is the path of the scene , value is the scene it's self
-        // protected static Dictionary<string, SceneAsset> _SceneDictionary = new Dictionary<string, SceneAsset>();
+        #endregion
 
         [MenuItem("Scenes Browser/Settings %E")]
         public static void ShowScenesBrowserSettings()
@@ -85,7 +81,7 @@ namespace ScenesBrowser
             onOpenNewScene += OpenNewScene;
 
             // select last saved value 
-            _SelectedScene = _DataSettings.m_PreviousScenesToolbarGridSize;
+            _SelectedSceneIndex = _DataSettings.m_PreviousScenesToolbarGridSize;
             //
             OnSceneChange();
             ShowActiveScene();
@@ -197,12 +193,17 @@ namespace ScenesBrowser
                     // Draw more choice under scene..
                     using (new EditorGUILayout.HorizontalScope())
                     {
+                        var _S = EditorSceneManager.GetActiveScene().name == scene.Scene.name;
+
+                        GUI.enabled = _S;
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                         {
                             scene.Hide = !scene.Hide;
                             // Invoke("ShowScenesOnToolbar", .1f);
                             // ShowScenesOnToolbar();
                         }
+                        GUI.enabled = !_S;
+
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                             Debug.Log("1");
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
@@ -270,12 +271,12 @@ namespace ScenesBrowser
         {
             var _SceneAndIconArray = GetSceneNameAndIcon();
             // Scene on Tool bar
-            _SelectedScene = GUILayout.Toolbar(_SelectedScene, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
+            _SelectedSceneIndex = GUILayout.Toolbar(_SelectedSceneIndex, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
 
             ShowActiveScene();
 
             // Is not thie same scene ? load the new scene
-            if (_SelectedScene != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsWindwoOpen)
+            if (_SelectedSceneIndex != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsWindwoOpen)
             {
                 // So this dumb.. but to make this SaveCurrentModifiedScenesIfUserWantsTo() not show tows >> Fix me or let me alive
                 _IsWindwoOpen = true;
@@ -283,12 +284,12 @@ namespace ScenesBrowser
                 // If there unsave change > ask if i want to save , If user click yes
                 if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 {   // Open scene
-                    onOpenNewScene?.Invoke(_SelectedScene);
+                    onOpenNewScene?.Invoke(_SelectedSceneIndex);
                     ResetIsSaveWindwoOpen();
                 }
                 else
                 {
-                    _SelectedScene = _DataSettings.m_PreviousScenesToolbarGridSize;
+                    _SelectedSceneIndex = _DataSettings.m_PreviousScenesToolbarGridSize;
                     ResetIsSaveWindwoOpen();
                 }
                 // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
@@ -308,7 +309,7 @@ namespace ScenesBrowser
             _ActiveSceneStyle.fixedHeight = 4;
 
             // Get active scene index
-            var _ActiveSceneIndex = _DataSettings.GetActiveScene(_SelectedScene);
+            var _ActiveSceneIndex = _DataSettings.GetActiveScene(EditorSceneManager.GetActiveScene().name);
             // Get start at value
             var _StartAt = _ActiveSceneIndex == 0 ? 6f : 4f;
             // X position
@@ -360,17 +361,17 @@ namespace ScenesBrowser
 
             // If Auto find scenes active > Find all scene in this ptoject
             if (_DataSettings.m_AutoFindScene)
-                _GetAllScenesInProject = Directory.GetFiles(Application.dataPath, _FilterBy, SearchOption.AllDirectories);
+                _AllScenesPathInProject = Directory.GetFiles(Application.dataPath, _FilterBy, SearchOption.AllDirectories);
             else
             {
                 // We have a path ? Look for scenes ..
                 if (_DataSettings.m_ScenePath != string.Empty)
-                    _GetAllScenesInProject = Directory.GetFiles(_DataSettings.m_ScenePath, _FilterBy);
+                    _AllScenesPathInProject = Directory.GetFiles(_DataSettings.m_ScenePath, _FilterBy);
                 else
                     Debug.LogError($"Path is null {_DataSettings.m_ScenePath}");
             }
             // Start adding to dictionary
-            foreach (var sc in _GetAllScenesInProject)
+            foreach (var sc in _AllScenesPathInProject)
             {
                 // Get path
                 var _Path = sc.Replace("\\", "/").Replace(Application.dataPath, "Assets");
@@ -444,6 +445,7 @@ namespace ScenesBrowser
             // Return an array
             return _SceneNameAndIcon.ToArray();
         }
+
 
     }
 }

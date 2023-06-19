@@ -8,11 +8,6 @@ namespace ScenesBrowser
 {
     public class ScenesBrowserExtender
     {
-        
-
-      
-
-
         // Create a new data to save the settings
         public static SBD CreateNewData(string path)
         {
@@ -55,7 +50,6 @@ namespace ScenesBrowser
                 return _Color;
 
             return _Color = Color.black;
-
         }
 
         public static GUIContent GetGUIContent(string text, string tooltip, Texture texture = null)

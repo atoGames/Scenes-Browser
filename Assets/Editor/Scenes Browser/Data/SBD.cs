@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-// [CreateAssetMenu(fileName = "SBD", menuName = "SBD/New data", order = 1)]
 namespace ScenesBrowser
 {
     public class SBD : ScriptableObject
@@ -28,27 +27,24 @@ namespace ScenesBrowser
 
         public bool IsSceneNotNull(string path) => _SceneList.Find(p => p.ScenePath == path) != null;
 
-        public int GetActiveScene(int index)
+        protected int _CurrentIndex = 0;
+        public int GetActiveScene(string sceneName)
         {
-            var _CurrentIndex = index;
-            // Deactivate all scene
-            for (var i = 0; i < _SceneList.Count; i++)
-                _SceneList[i].Active = false;
+            /*  // Deactivate all scene
+             for (var i = 0; i < _SceneList.Count; i++)
+                 _SceneList[i].Active = false; */
 
-            // The scene we call is hiding ? Get another scene
-            if (_SceneList[_CurrentIndex].Hide)
-            {
-                _CurrentIndex = _SceneList.IndexOf(_SceneList.Find(active => !active.Hide));
-                Debug.Log("This is hideing " + index + " New one : " + _CurrentIndex);
-            }
-            else
-            {
-                // Get scene index if hide false
-                _CurrentIndex = _SceneList.IndexOf(_SceneList[_CurrentIndex]);
-                Debug.Log("This not hideing " + _CurrentIndex);
-            }
-            // Set active scene
-            _SceneList[_CurrentIndex].Active = true;
+            //  Get active scene
+            var _ActiveScane = _SceneList.Find(ac => ac.Scene.name == sceneName);
+            _CurrentIndex = _SceneList.IndexOf(_ActiveScane);
+
+            /*  if (_ActiveScane.Hide && (_CurrentIndex >= _SceneList.Count - 1))
+             {
+                 _CurrentIndex--;
+                 Debug.Log(_CurrentIndex);
+             } */
+            // _ActiveScane.Active = true;
+
 
             return _CurrentIndex;
         }
