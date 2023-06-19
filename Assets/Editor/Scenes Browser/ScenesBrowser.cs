@@ -206,9 +206,9 @@ namespace ScenesBrowser
                         GUI.enabled = true;
 
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
-                            Debug.Log("1");
+                            Debug.Log("Rename scene");
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
-                            Debug.Log("1");
+                            Debug.Log("Delete scene");
                     }
                     //
                     GUILayout.EndArea();
@@ -274,7 +274,7 @@ namespace ScenesBrowser
             // Scene on Tool bar
             _SelectedSceneIndex = GUILayout.Toolbar(_SelectedSceneIndex, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
 
-            ShowActiveScene(EditorSceneManager.GetActiveScene().name);
+            // ShowActiveScene(EditorSceneManager.GetActiveScene().name);
 
             // Is not thie same scene ? load the new scene
             // if (_SelectedSceneIndex != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsWindwoOpen)
@@ -300,39 +300,40 @@ namespace ScenesBrowser
             }
         }
         // Show active scene
-        private static void ShowActiveScene(string sceneName)
-        {
-            // Style
-            _ActiveSceneStyle = new GUIStyle(/* GUI.skin.horizontalScrollbar */);
-            // Create a new texture  
-            _ActiveSceneTexture = null ?? ScenesBrowserExtender.CreateNewTexture2D(1, 1, ScenesBrowserExtender.CreateNewColor("D9D9D9"));
-            // Set texture  
-            _ActiveSceneStyle.normal.background = _ActiveSceneTexture;
-            // Set height
-            _ActiveSceneStyle.fixedHeight = 4;
+        /*   private static void ShowActiveScene(string sceneName)
+          {
+              // Style
+              _ActiveSceneStyle = null ?? new GUIStyle();
+              // Create a new texture  
+              _ActiveSceneTexture = null ?? ScenesBrowserExtender.CreateNewTexture2D(1, 1, ScenesBrowserExtender.CreateNewColor("D9D9D9"));
+              // Set texture  
+              _ActiveSceneStyle.normal.background = _ActiveSceneTexture;
+              // Set height
+              _ActiveSceneStyle.fixedHeight = 4;
 
-            // Get active scene index
-            var _ActiveSceneIndex = _DataSettings.GetActiveScene(sceneName);
-            // Get start at value
-            var _StartAt = _ActiveSceneIndex == 0 ? 6f : 4f;
-            // X position
-            var _xPos = _StartAt + _Width * _ActiveSceneIndex;
-            // Y position
-            var _yPos = _Heigth;
+              // Get active scene index
+              var _ActiveSceneIndex = _SelectedSceneIndex; //Array.IndexOf(GetSceneNameAndIcon(), _SelectedSceneIndex);
+              // Get start at value
+              var _StartAt = _ActiveSceneIndex == 0 ? 6f : 4f;
+              // X position
+              var _xPos = _StartAt + _Width * _ActiveSceneIndex;
+              // Y position
+              var _yPos = _Heigth;
 
-            // Check we have scene + and the scene not hiding 
-            if (_DataSettings.SceneList.Count != 0 && !_DataSettings.SceneList.All(a => a.Hide))
-                // Show line under a active scene 
-                GUI.Label(new Rect(_xPos, _yPos, _Width - _StartAt, _Heigth), "", _ActiveSceneStyle);
-        }
+              // Check we have scene + and the scene not hiding 
+              if (_DataSettings.SceneList.Count != 0 && !_DataSettings.SceneList.All(a => a.Hide))
+                  // Show line under a active scene 
+                  GUI.Label(new Rect(_xPos, _yPos, _Width - _StartAt, _Heigth), "", _ActiveSceneStyle);
+          } */
 
         /// <summary>
         /// Open new scene by index
         /// </summary>
         protected static void OpenNewScene(string sceneName)
         {
+            //  This scene a already open
             if (EditorSceneManager.GetActiveScene().name == sceneName) return;
-            Debug.Log("OpenNewScene " + sceneName);
+
             var _Index = _DataSettings.SceneList.IndexOf(_DataSettings.SceneList.Find(c => c.Scene.name == sceneName));
             // Save prev scene index
             _DataSettings.m_PreviousScenesToolbarGridSize = _Index;
@@ -362,8 +363,6 @@ namespace ScenesBrowser
         {
             // On scene change
             OnSceneChange();
-
-            Debug.Log("Update Scene In Dictionary");
 
             // If Auto find scenes active > Find all scene in this ptoject
             if (_DataSettings.m_AutoFindScene)
