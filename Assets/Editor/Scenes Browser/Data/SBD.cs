@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -30,20 +31,21 @@ namespace ScenesBrowser
         protected int _CurrentIndex = 0;
         public int GetActiveScene(string sceneName)
         {
-            /*  // Deactivate all scene
-             for (var i = 0; i < _SceneList.Count; i++)
-                 _SceneList[i].Active = false; */
+            // Deactivate all scene
+            for (var i = 0; i < _SceneList.Count; i++)
+                _SceneList[i].Active = false;
 
             //  Get active scene
             var _ActiveScane = _SceneList.Find(ac => ac.Scene.name == sceneName);
+            _ActiveScane.Active = true;
+
             _CurrentIndex = _SceneList.IndexOf(_ActiveScane);
 
-            /*  if (_ActiveScane.Hide && (_CurrentIndex >= _SceneList.Count - 1))
-             {
-                 _CurrentIndex--;
-                 Debug.Log(_CurrentIndex);
-             } */
-            // _ActiveScane.Active = true;
+            if (_SceneList.IndexOf(_ActiveScane) == _SceneList.Count - 1 && _ActiveScane.Hide)
+            {
+                _CurrentIndex--;
+                Debug.Log(_CurrentIndex);
+            }
 
 
             return _CurrentIndex;

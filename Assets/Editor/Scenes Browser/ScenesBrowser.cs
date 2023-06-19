@@ -35,7 +35,7 @@ namespace ScenesBrowser
         protected static Vector2 _ScrollPositionOnToolbar;
         // Width & Heigth Settings and refresh BG
         protected static int _WidthSettingsAndRefreshBG = 26, _HeigthSettingsAndRefreshBG = 20;
-        protected static Action<int> onOpenNewScene;
+        protected static Action<string> onOpenNewScene;
         protected static bool _IsWindwoOpen = false;
         protected static void ResetIsSaveWindwoOpen() => _IsWindwoOpen = false;
         #endregion
@@ -84,7 +84,7 @@ namespace ScenesBrowser
             _SelectedSceneIndex = _DataSettings.m_PreviousScenesToolbarGridSize;
             //
             OnSceneChange();
-            ShowActiveScene();
+            // ShowActiveScene();
 
         }
         private void OnGUI()
@@ -193,16 +193,17 @@ namespace ScenesBrowser
                     // Draw more choice under scene..
                     using (new EditorGUILayout.HorizontalScope())
                     {
-                        var _S = EditorSceneManager.GetActiveScene().name == scene.Scene.name;
 
-                        GUI.enabled = _S;
+                        GUI.enabled = !scene.Active;
+                        // Dsiable if this scene open
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                         {
                             scene.Hide = !scene.Hide;
                             // Invoke("ShowScenesOnToolbar", .1f);
-                            // ShowScenesOnToolbar();
+                            // OnToolbarGUI();
+                            // ShowActiveScene(EditorSceneManager.GetActiveScene().name);
                         }
-                        GUI.enabled = !_S;
+                        GUI.enabled = true;
 
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                             Debug.Log("1");
@@ -273,18 +274,20 @@ namespace ScenesBrowser
             // Scene on Tool bar
             _SelectedSceneIndex = GUILayout.Toolbar(_SelectedSceneIndex, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
 
-            ShowActiveScene();
+            ShowActiveScene(EditorSceneManager.GetActiveScene().name);
 
             // Is not thie same scene ? load the new scene
-            if (_SelectedSceneIndex != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsWindwoOpen)
+            // if (_SelectedSceneIndex != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsWindwoOpen)
+            if (GUI.changed)
             {
                 // So this dumb.. but to make this SaveCurrentModifiedScenesIfUserWantsTo() not show tows >> Fix me or let me alive
                 _IsWindwoOpen = true;
 
                 // If there unsave change > ask if i want to save , If user click yes
                 if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                {   // Open scene
-                    onOpenNewScene?.Invoke(_SelectedSceneIndex);
+                {
+                    // Open scene
+                    onOpenNewScene?.Invoke(_SceneAndIconArray[_SelectedSceneIndex].text);
                     ResetIsSaveWindwoOpen();
                 }
                 else
@@ -297,10 +300,10 @@ namespace ScenesBrowser
             }
         }
         // Show active scene
-        private static void ShowActiveScene()
+        private static void ShowActiveScene(string sceneName)
         {
             // Style
-            _ActiveSceneStyle = null ?? new GUIStyle(GUI.skin.horizontalScrollbar);
+            _ActiveSceneStyle = new GUIStyle(/* GUI.skin.horizontalScrollbar */);
             // Create a new texture  
             _ActiveSceneTexture = null ?? ScenesBrowserExtender.CreateNewTexture2D(1, 1, ScenesBrowserExtender.CreateNewColor("D9D9D9"));
             // Set texture  
@@ -309,7 +312,7 @@ namespace ScenesBrowser
             _ActiveSceneStyle.fixedHeight = 4;
 
             // Get active scene index
-            var _ActiveSceneIndex = _DataSettings.GetActiveScene(EditorSceneManager.GetActiveScene().name);
+            var _ActiveSceneIndex = _DataSettings.GetActiveScene(sceneName);
             // Get start at value
             var _StartAt = _ActiveSceneIndex == 0 ? 6f : 4f;
             // X position
@@ -326,12 +329,15 @@ namespace ScenesBrowser
         /// <summary>
         /// Open new scene by index
         /// </summary>
-        protected static void OpenNewScene(int index)
+        protected static void OpenNewScene(string sceneName)
         {
+            if (EditorSceneManager.GetActiveScene().name == sceneName) return;
+            Debug.Log("OpenNewScene " + sceneName);
+            var _Index = _DataSettings.SceneList.IndexOf(_DataSettings.SceneList.Find(c => c.Scene.name == sceneName));
             // Save prev scene index
-            _DataSettings.m_PreviousScenesToolbarGridSize = index;
+            _DataSettings.m_PreviousScenesToolbarGridSize = _Index;
             // Open scene
-            EditorSceneManager.OpenScene(_DataSettings.SceneList[index].ScenePath);
+            EditorSceneManager.OpenScene(_DataSettings.SceneList.Find(c => c.Scene.name == sceneName).ScenePath);
         }
         /// <summary>
         /// Settings and refresh buttons
