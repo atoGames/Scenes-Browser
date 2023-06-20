@@ -141,8 +141,6 @@ namespace ScenesBrowser
                     _RowCount = int.Parse(_RowCountOptions[_SelectedRowIndex]);
                     // Draw vertical line
                     EditorGUILayout.LabelField("", GUI.skin.verticalSlider, GUILayout.MaxWidth(10));
-
-                    // EditorGUILayout.LabelField("Refresh", GUILayout.MaxWidth(45));
                     // Refresh
                     if (GUILayout.Button("Refresh", GUILayout.Height(18)))
                         UpdateSceneInDictionary();
@@ -218,9 +216,15 @@ namespace ScenesBrowser
                         GUI.enabled = true;
 
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
+                        {
                             Debug.Log("Rename scene");
+                        }
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
+                        {
                             Debug.Log("Delete scene");
+                            File.Delete(scene.ScenePath);
+                            // SCene.(EditorSceneManager.GetSceneByName(scene.Scene.name), true);
+                        }
                     }
                     //
                     GUILayout.EndArea();
