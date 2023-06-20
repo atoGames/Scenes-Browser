@@ -166,7 +166,7 @@ namespace ScenesBrowser
             // Set scroll view : position
             var _ScrollViewPosition = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
             // Set scroll view : contetn view
-            var _ScrollView = new Rect(0, 0, !maximized ? (_RowCount / 4) * (Screen.width - 20) : (Screen.width - 20), (_ButtonSize + 40) * _DataSettings.SceneList.Count / 5);
+            var _ScrollView = new Rect(0, 0, !maximized ? (_RowCount / 4) * (Screen.width - 20) : (Screen.width - 20), (_ButtonSize + 40) * _DataSettings.SceneList.Count / 4);
             // Begin scroll view
             _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_ScrollViewPosition, _ScrollPositionOnSettingsWindow, _ScrollView, !maximized ? _RowCount > 4 : false, false);
             // Setting window scene style  
@@ -180,7 +180,7 @@ namespace ScenesBrowser
             var _Count = 0;
 
             // foreach (var scene in _SceneDictionary)
-            foreach (var scene in _DataSettings.SceneList)
+            foreach (var scene in _DataSettings.SceneList.ToList())
             {
                 // Draw scene 4/4
                 if (scene.Scene != null)
@@ -221,8 +221,18 @@ namespace ScenesBrowser
                         }
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                         {
-                            Debug.Log("Delete scene");
-                            File.Delete(scene.ScenePath);
+                            if (EditorUtility.DisplayDialog("Delete Confirmation", "Are you sure you want to delete this scene?", "Delete", "Cancel"))
+                            {
+                                // Delete meta file
+                                File.Delete(scene.ScenePath + ".meta");
+                                // Delete scene file
+                                File.Delete(scene.ScenePath);
+
+                                _DataSettings.SceneList.Remove(scene);
+                                AssetDatabase.Refresh();
+                            }
+                            else
+                                Debug.Log("Cancel");
                             // SCene.(EditorSceneManager.GetSceneByName(scene.Scene.name), true);
                         }
                     }
