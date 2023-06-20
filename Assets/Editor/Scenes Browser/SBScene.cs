@@ -22,11 +22,17 @@ public class SBScene
     /// <param name="newSceneName"></param>
     public void SetNewSceneName(string newSceneName)
     {
+        var _OldName = Scene.name;
         // Set new scene name 
         AssetDatabase.RenameAsset(ScenePath, newSceneName);
-        // Done
-        IsRenameSceneActive = false;
+        //Update path
+        UpdatePath(_OldName, newSceneName);
+        // Close
+        DisableRename();
     }
 
-
+    //Update path
+    protected void UpdatePath(string oldName, string newNmae) => ScenePath = ScenePath.Replace(oldName, newNmae);
+    // Disable rename
+    internal void DisableRename() => IsRenameSceneActive = false;
 }

@@ -27,7 +27,7 @@ namespace ScenesBrowser.Utils
             var _ScenePath = EditorUtility.OpenFolderPanel("Select Scenes Folder", path, "Scenes");
             // Path not null ?
             if (!string.IsNullOrEmpty(_ScenePath))
-                // Don't show full path .. just (Assets/..)
+                // Don't show full path .. just (Assets/..) , TODO: Don't allow path out of this project
                 _DataSettings.m_ScenePath = (_ScenePath.Contains("Assets")) ? _ScenePath.Substring(_ScenePath.IndexOf("Assets")) : path;
         }
         public static Texture2D CreateNewTexture2D(int width, int height, Color col)
@@ -64,10 +64,5 @@ namespace ScenesBrowser.Utils
             return _GUIContent;
         }
 
-        public static string Between(string path, string firstStr, string lastStr)
-        {
-            var _Str = path.IndexOf(firstStr) + firstStr.Length;
-            return path.Substring(_Str, path.IndexOf(lastStr) - _Str);
-        }
     }
 }

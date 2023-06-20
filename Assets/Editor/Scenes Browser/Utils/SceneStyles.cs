@@ -4,15 +4,17 @@ using UnityEngine;
 
 namespace ScenesBrowser.Utils
 {
+    // TODO: Delete this class
     public class SceneStyles : MonoBehaviour
     {
+        /*
         private static Texture2D texActive, texBackgroundHover;
         // Settings and refresh BG
         private static Texture2D _SettingsAndRefreshBackground; //= CreateNewTexture2D(16, 16, CreateNewColor());
         private static Color _SettingsAndRefreshBackgroundColor;
 
 
-        public static void LoadTextures()
+         public static void LoadTextures()
         {
             _SettingsAndRefreshBackgroundColor = ScenesBrowserExtender.CreateNewColor();
             _SettingsAndRefreshBackground ??= ScenesBrowserExtender.CreateNewTexture2D(1, 1, _SettingsAndRefreshBackgroundColor);
@@ -38,6 +40,7 @@ namespace ScenesBrowser.Utils
             // m_SceneStyle.hover.background = texBackgroundHover;
             //m_SceneStyle.onHover.background = m_TexBackgroundHover;
             return m_SceneStyle;
-        }
+        } 
+        */
     }
 }

@@ -49,6 +49,8 @@ namespace ScenesBrowser
         protected string[] _RowCountOptions = new string[] { "4", "8", "12" };
         private string _NewSceneName = "";
 
+        public static bool IsPlayModeOn = false;
+
         #endregion
 
         [MenuItem("Scenes Browser/Settings %E")]
@@ -66,7 +68,7 @@ namespace ScenesBrowser
         [InitializeOnLoadMethod]
         private static void LoadScenesBrowser()
         {
-            SceneStyles.LoadTextures();
+            // SceneStyles.LoadTextures();
 
             // We don't have settings-data ? 
             if (!_DataSettings)
@@ -82,9 +84,15 @@ namespace ScenesBrowser
             _SelectedSceneIndex = _DataSettings.m_PreviousScenesToolbarGridSize;
             // On scene change
             OnSceneChange();
+
+            EditorApplication.playModeStateChanged += PlayModeON;
         }
+        protected static void PlayModeON(PlayModeStateChange state) => IsPlayModeOn = state == PlayModeStateChange.EnteredPlayMode;
+
         private void OnGUI()
         {
+
+
             // No data?
             if (_DataSettings)
             {
@@ -214,11 +222,10 @@ namespace ScenesBrowser
                             if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                             {
                                 // Set scene name
-                                // _NewSceneName = _Scene.Scene.name;
+                                _NewSceneName = _Scene.Scene.name;
                                 // Show rename text field
                                 _Scene.IsRenameSceneActive = true;
                             }
-
 
                             // Delete a scene
                             if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
@@ -250,14 +257,15 @@ namespace ScenesBrowser
                                 // Ok
                                 if (GUILayout.Button("Ok", GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)) || _PressEnter)
                                 {
-                                    // Apply new name
-                                    _Scene.SetNewSceneName(_NewSceneName);
+                                    if (_NewSceneName != string.Empty)
+                                        // Apply new name
+                                        _Scene.SetNewSceneName(_NewSceneName);
+                                    else
+                                        _Scene.DisableRename();
+
                                     // Refresh unity
                                     AssetDatabase.Refresh();
-                                    _NewSceneName = string.Empty;
                                 }
-
-
                             }
                         }
                     }
@@ -268,22 +276,28 @@ namespace ScenesBrowser
             }
             // End scroll view
             GUI.EndScrollView();
+
             // Save button
-            if (GUI.Button(new Rect(0, Screen.height - 110, Screen.width - 25, 26), new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image)))
+            if (GUI.Button(new Rect(0, Screen.height - 110, Screen.width - 64, 26), new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image)))
             {
                 ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
                 EditorUtility.SetDirty(_DataSettings);
                 AssetDatabase.SaveAssets();
             }
+            // Clear all 
+            if (GUI.Button(new Rect(Screen.width - 64, Screen.height - 110, 50, 26), "Clear"))
+                UpdateSceneInDictionary(true);
+
             GUI.EndGroup();
         }
+
         /// <summary>
         /// On toolbar gui
         /// </summary>
         private static void OnToolbarGUI()
         {
             // Is show quick access true ?
-            if (_DataSettings.m_ShowQuickAccess)
+            if (_DataSettings.m_ShowQuickAccess && !IsPlayModeOn)
                 ShowScenesOnToolbar();
         }
         /// <summary>
@@ -377,10 +391,10 @@ namespace ScenesBrowser
         /// <summary>
         /// Update scene in dictionary
         /// </summary>
-        private static void UpdateSceneInDictionary()
+        private static void UpdateSceneInDictionary(bool clearList = false)
         {
             // On scene change
-            OnSceneChange();
+            OnSceneChange(clearList);
 
             // If Auto find scenes active > Find all scene in this ptoject
             if (_DataSettings.m_AutoFindScene)
@@ -398,8 +412,7 @@ namespace ScenesBrowser
             {
                 // Get path
                 var _Path = sc.Replace("\\", "/").Replace(Application.dataPath, "Assets");
-                // Get scenes name
-                // var _Name = ScenesBrowserExtender.Between(_Path, "Scenes/", ".unity");
+                // Load scene 
                 var _Scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(_Path);
                 // We don't have this ??
                 if (!_DataSettings.IsContainScene(_Scene))
@@ -414,8 +427,15 @@ namespace ScenesBrowser
         /// <summary>
         /// Check for any change in scene
         /// </summary>
-        private static void OnSceneChange()
+        private static void OnSceneChange(bool clearList = false)
         {
+            // If this true , Clear
+            if (clearList)
+            {
+                _DataSettings.SceneList.Clear();
+                return;
+            }
+            // Else , Remove the empty one
             for (int i = _DataSettings.SceneList.Count - 1; i >= 0; i--)
             {
                 if (_DataSettings.SceneList[i].Scene == null)
