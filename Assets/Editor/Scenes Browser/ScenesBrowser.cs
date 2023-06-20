@@ -36,8 +36,8 @@ namespace ScenesBrowser
         // Width & Heigth Settings and refresh BG
         protected static int _WidthSettingsAndRefreshBG = 26, _HeigthSettingsAndRefreshBG = 20;
         protected static Action<string> onOpenNewScene;
-        protected static bool _IsWindwoOpen = false;
-        protected static void ResetIsSaveWindwoOpen() => _IsWindwoOpen = false;
+        // protected static bool _IsWindwoOpen = false;
+        // protected static void ResetIsSaveWindwoOpen() => _IsWindwoOpen = false;
         #endregion
 
         #region  Settings window
@@ -47,8 +47,8 @@ namespace ScenesBrowser
         private static Texture2D _ActiveSceneTexture;
         protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
         protected static GUIStyle _ActiveSceneStyle, _SettingWindowSceneStyle;
-        private int _RawSize = 4, _SelectedRowIndex = 0;
-        protected string[] _RowOptions = new string[] { "4", "8", "12" };
+        private int _RowCount = 4, _SelectedRowIndex = 0;
+        protected string[] _RowCountOptions = new string[] { "4", "8", "12" };
 
         #endregion
 
@@ -120,12 +120,9 @@ namespace ScenesBrowser
                 if (GUILayout.Button(_ResetContent, GUILayout.Width(25), GUILayout.Height(_Heigth)))
                     NewReset();
 
-
-
-                EditorGUILayout.EndHorizontal();
                 // End of top
+                EditorGUILayout.EndHorizontal();
 
-                // EditorGUILayout.Space(3);
                 // Show Scene At Left Or Right
                 using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
                 {
@@ -136,13 +133,19 @@ namespace ScenesBrowser
                     EditorGUILayout.LabelField("", GUI.skin.verticalSlider, GUILayout.MaxWidth(10));
                     // Quick Access
                     _DataSettings.m_ShowQuickAccess = EditorGUILayout.Toggle(_DataSettings.m_ShowQuickAccess, GUILayout.MaxWidth(15));
-                    EditorGUILayout.LabelField(_DataSettings.m_ShowQuickAccess ? " Hide Quick Access " : " Show Quick Access ", GUILayout.MaxWidth(128));
+                    EditorGUILayout.LabelField(_DataSettings.m_ShowQuickAccess ? " Hide Quick Access " : " Show Quick Access ", GUILayout.MaxWidth(118));
+                    // Draw vertical line
+                    EditorGUILayout.LabelField("", GUI.skin.verticalSlider, GUILayout.MaxWidth(10));
+                    EditorGUILayout.LabelField("Row count", GUILayout.MaxWidth(64));
+                    _SelectedRowIndex = EditorGUILayout.Popup(_SelectedRowIndex, _RowCountOptions, GUILayout.Width(32));
+                    _RowCount = int.Parse(_RowCountOptions[_SelectedRowIndex]);
                     // Draw vertical line
                     EditorGUILayout.LabelField("", GUI.skin.verticalSlider, GUILayout.MaxWidth(10));
 
-                    EditorGUILayout.LabelField("Row size", GUILayout.MaxWidth(64));
-                    _SelectedRowIndex = EditorGUILayout.Popup(_SelectedRowIndex, _RowOptions, GUILayout.Width(32));
-                    _RawSize = int.Parse(_RowOptions[_SelectedRowIndex]);
+                    // EditorGUILayout.LabelField("Refresh", GUILayout.MaxWidth(45));
+                    // Refresh
+                    if (GUILayout.Button("Refresh", GUILayout.Height(18)))
+                        UpdateSceneInDictionary();
                 }
                 // Draw scenes on window setting
                 DrawScenesOnWindowSetting();
@@ -165,9 +168,9 @@ namespace ScenesBrowser
             // Set scroll view : position
             var _ScrollViewPosition = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
             // Set scroll view : contetn view
-            var _ScrollView = new Rect(0, 0, !maximized ? (_RawSize / 4) * (Screen.width - 20) : (Screen.width - 20), (_ButtonSize + 40) * _DataSettings.SceneList.Count / 5);
+            var _ScrollView = new Rect(0, 0, !maximized ? (_RowCount / 4) * (Screen.width - 20) : (Screen.width - 20), (_ButtonSize + 40) * _DataSettings.SceneList.Count / 5);
             // Begin scroll view
-            _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_ScrollViewPosition, _ScrollPositionOnSettingsWindow, _ScrollView, !maximized ? _RawSize > 4 : false, false);
+            _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_ScrollViewPosition, _ScrollPositionOnSettingsWindow, _ScrollView, !maximized ? _RowCount > 4 : false, false);
             // Setting window scene style  
             _SettingWindowSceneStyle = null ?? new GUIStyle("Button");
             _SettingWindowSceneStyle.alignment = TextAnchor.LowerCenter;
@@ -184,7 +187,7 @@ namespace ScenesBrowser
                 // Draw scene 4/4
                 if (scene.Scene != null)
                 {
-                    if (_Count >= _RawSize)
+                    if (_Count >= _RowCount)
                     {
                         yPos += _ButtonSize + 5;
                         _Count = 0;
@@ -285,56 +288,30 @@ namespace ScenesBrowser
 
             // ShowActiveScene(EditorSceneManager.GetActiveScene().name);
 
+            // TODO: Clear this code
             // Is not thie same scene ? load the new scene
             // if (_SelectedSceneIndex != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsWindwoOpen)
             if (GUI.changed)
             {
                 // So this dumb.. but to make this SaveCurrentModifiedScenesIfUserWantsTo() not show tows >> Fix me or let me alive
-                _IsWindwoOpen = true;
+                // _IsWindwoOpen = true;
 
                 // If there unsave change > ask if i want to save , If user click yes
                 if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 {
                     // Open scene
                     onOpenNewScene?.Invoke(_SceneAndIconArray[_SelectedSceneIndex].text);
-                    ResetIsSaveWindwoOpen();
+                    // ResetIsSaveWindwoOpen();
                 }
-                else
-                {
-                    _SelectedSceneIndex = _DataSettings.m_PreviousScenesToolbarGridSize;
-                    ResetIsSaveWindwoOpen();
-                }
+                /*  else
+                 {
+                     _SelectedSceneIndex = _DataSettings.m_PreviousScenesToolbarGridSize;
+                     ResetIsSaveWindwoOpen();
+                 } */
                 // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
                 GUIUtility.ExitGUI();
             }
         }
-        // Show active scene
-        /*   private static void ShowActiveScene(string sceneName)
-          {
-              // Style
-              _ActiveSceneStyle = null ?? new GUIStyle();
-              // Create a new texture  
-              _ActiveSceneTexture = null ?? ScenesBrowserExtender.CreateNewTexture2D(1, 1, ScenesBrowserExtender.CreateNewColor("D9D9D9"));
-              // Set texture  
-              _ActiveSceneStyle.normal.background = _ActiveSceneTexture;
-              // Set height
-              _ActiveSceneStyle.fixedHeight = 4;
-
-              // Get active scene index
-              var _ActiveSceneIndex = _SelectedSceneIndex; //Array.IndexOf(GetSceneNameAndIcon(), _SelectedSceneIndex);
-              // Get start at value
-              var _StartAt = _ActiveSceneIndex == 0 ? 6f : 4f;
-              // X position
-              var _xPos = _StartAt + _Width * _ActiveSceneIndex;
-              // Y position
-              var _yPos = _Heigth;
-
-              // Check we have scene + and the scene not hiding 
-              if (_DataSettings.SceneList.Count != 0 && !_DataSettings.SceneList.All(a => a.Hide))
-                  // Show line under a active scene 
-                  GUI.Label(new Rect(_xPos, _yPos, _Width - _StartAt, _Heigth), "", _ActiveSceneStyle);
-          } */
-
         /// <summary>
         /// Open new scene by index
         /// </summary>
@@ -343,13 +320,16 @@ namespace ScenesBrowser
             //  This scene a already open
             if (EditorSceneManager.GetActiveScene().name == sceneName) return;
 
-            var _Index = _DataSettings.SceneList.IndexOf(_DataSettings.SceneList.Find(c => c.Scene.name == sceneName));
+            // Get current scene
+            var _CurrentScene = _DataSettings.SceneList.Find(c => c.Scene.name == sceneName);
+
+            var _Index = _DataSettings.SceneList.IndexOf(_CurrentScene);
             // Save prev scene index
             _DataSettings.m_PreviousScenesToolbarGridSize = _Index;
             // Set active scene
-            _DataSettings.SetActiveScene(sceneName);
+            _DataSettings.SetActiveScene(_CurrentScene);
             // Open scene
-            EditorSceneManager.OpenScene(_DataSettings.SceneList.Find(c => c.Scene.name == sceneName).ScenePath);
+            EditorSceneManager.OpenScene(_CurrentScene.ScenePath);
         }
         /// <summary>
         /// Settings and refresh buttons

@@ -29,15 +29,14 @@ namespace ScenesBrowser
 
         public bool IsSceneNotNull(string path) => _SceneList.Find(p => p.ScenePath == path) != null;
 
-        public void SetActiveScene(string sceneName)
+        public void SetActiveScene(SBScene sbScene)
         {
             // Deactivate all scene
             for (var i = 0; i < _SceneList.Count; i++)
                 _SceneList[i].Active = false;
 
             //  Get active scene
-            var _ActiveScane = _SceneList.Find(ac => ac.Scene.name == sceneName);
-            _ActiveScane.Active = true;
+            sbScene.Active = true;
         }
 
 
