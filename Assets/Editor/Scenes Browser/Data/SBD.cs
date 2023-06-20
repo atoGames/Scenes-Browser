@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace ScenesBrowser
+namespace ScenesBrowser.Data
 {
     public class SBD : ScriptableObject
     {

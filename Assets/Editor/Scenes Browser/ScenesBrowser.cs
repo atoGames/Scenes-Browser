@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ScenesBrowser.Data;
+using ScenesBrowser.Utils;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityToolbarExtender;
 
 // Unity toolbar extender : https://github.com/marijnz/unity-toolbar-extender
@@ -209,9 +210,7 @@ namespace ScenesBrowser
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                         {
                             scene.Hide = !scene.Hide;
-                            // Invoke("ShowScenesOnToolbar", .1f);
                             // OnToolbarGUI();
-                            // ShowActiveScene(EditorSceneManager.GetActiveScene().name);
                         }
                         GUI.enabled = true;
 
@@ -221,14 +220,16 @@ namespace ScenesBrowser
                         }
                         if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                         {
+                            // Ask for confirmation
                             if (EditorUtility.DisplayDialog("Delete Confirmation", "Are you sure you want to delete this scene?", "Delete", "Cancel"))
                             {
                                 // Delete meta file
                                 File.Delete(scene.ScenePath + ".meta");
                                 // Delete scene file
                                 File.Delete(scene.ScenePath);
-
+                                // Remove scene from the list
                                 _DataSettings.SceneList.Remove(scene);
+                                // Refresh unity
                                 AssetDatabase.Refresh();
                             }
                             else
@@ -290,38 +291,22 @@ namespace ScenesBrowser
             }
             EditorGUILayout.EndScrollView();
         }
-
         /// <summary>
         /// Draw scenes on toolbar
         /// </summary>
         private static void DrawScenesOnToolbar()
         {
             var _SceneAndIconArray = GetSceneNameAndIcon();
-            // Scene on Tool bar
+            // Scene on Tool bar > If the user has hidden a scene, this will select the next scene .. but not activated
             _SelectedSceneIndex = GUILayout.Toolbar(_SelectedSceneIndex, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
 
-            // ShowActiveScene(EditorSceneManager.GetActiveScene().name);
-
-            // TODO: Clear this code
-            // Is not thie same scene ? load the new scene
-            // if (_SelectedSceneIndex != _DataSettings.m_PreviousScenesToolbarGridSize && !_IsWindwoOpen)
+            // Not the same scene ? load the new scene
             if (GUI.changed)
             {
-                // So this dumb.. but to make this SaveCurrentModifiedScenesIfUserWantsTo() not show tows >> Fix me or let me alive
-                // _IsWindwoOpen = true;
-
                 // If there unsave change > ask if i want to save , If user click yes
                 if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                {
                     // Open scene
                     onOpenNewScene?.Invoke(_SceneAndIconArray[_SelectedSceneIndex].text);
-                    // ResetIsSaveWindwoOpen();
-                }
-                /*  else
-                 {
-                     _SelectedSceneIndex = _DataSettings.m_PreviousScenesToolbarGridSize;
-                     ResetIsSaveWindwoOpen();
-                 } */
                 // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
                 GUIUtility.ExitGUI();
             }
@@ -408,9 +393,7 @@ namespace ScenesBrowser
                 if (_DataSettings.SceneList[i].Scene == null)
                     _DataSettings.SceneList.RemoveAt(i);
             }
-
         }
-
         /// <summary>
         /// Setup settings data
         /// </summary>
@@ -455,7 +438,5 @@ namespace ScenesBrowser
             // Return an array
             return _SceneNameAndIcon.ToArray();
         }
-
-
     }
 }

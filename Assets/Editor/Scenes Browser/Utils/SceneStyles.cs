@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ScenesBrowser
+namespace ScenesBrowser.Utils
 {
     public class SceneStyles : MonoBehaviour
     {
