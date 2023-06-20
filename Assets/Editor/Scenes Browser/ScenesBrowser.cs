@@ -16,7 +16,6 @@ namespace ScenesBrowser
 {
     public class ScenesBrowser : EditorWindow
     {
-
         protected static readonly GUIContent _WindowName = EditorGUIUtility.TrTextContent("Scenes Browser - Settings");
         protected static EditorWindow _EditorWindow;
         protected static Vector2 _WindowSettingsMaxSize = new Vector2(512, 350);
@@ -37,8 +36,6 @@ namespace ScenesBrowser
         // Width & Heigth Settings and refresh BG
         protected static int _WidthSettingsAndRefreshBG = 26, _HeigthSettingsAndRefreshBG = 20;
         protected static Action<string> onOpenNewScene;
-        // protected static bool _IsWindwoOpen = false;
-        // protected static void ResetIsSaveWindwoOpen() => _IsWindwoOpen = false;
         #endregion
 
         #region  Settings window
@@ -68,7 +65,6 @@ namespace ScenesBrowser
         [InitializeOnLoadMethod]
         private static void LoadScenesBrowser()
         {
-
             SceneStyles.LoadTextures();
 
             // We don't have settings-data ? 
@@ -77,18 +73,14 @@ namespace ScenesBrowser
             // We have the data
             if (_DataSettings)
                 ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
-
             // 
             UpdateSceneInDictionary();
-
+            // 
             onOpenNewScene += OpenNewScene;
-
             // select last saved value 
             _SelectedSceneIndex = _DataSettings.m_PreviousScenesToolbarGridSize;
-            //
+            // On scene change
             OnSceneChange();
-            // ShowActiveScene();
-
         }
         private void OnGUI()
         {
