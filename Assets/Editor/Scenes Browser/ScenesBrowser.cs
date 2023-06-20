@@ -47,6 +47,7 @@ namespace ScenesBrowser
         protected static GUIStyle _ActiveSceneStyle, _SettingWindowSceneStyle;
         private int _RowCount = 4, _SelectedRowIndex = 0;
         protected string[] _RowCountOptions = new string[] { "4", "8", "12" };
+        private string _NewSceneName = "";
 
         #endregion
 
@@ -173,10 +174,12 @@ namespace ScenesBrowser
             var _Count = 0;
 
             // foreach (var scene in _SceneDictionary)
-            foreach (var scene in _DataSettings.SceneList.ToList())
+            foreach (var sc in _DataSettings.SceneList.ToList())
             {
+                var _Scene = sc;
+
                 // Draw scene 4/4
-                if (scene.Scene != null)
+                if (_Scene.Scene != null)
                 {
                     if (_Count >= _RowCount)
                     {
@@ -189,44 +192,73 @@ namespace ScenesBrowser
 
                     GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
                     // Get scene name
-                    var _SceneName = scene.Scene.name;
+                    var _SceneName = _Scene.Scene.name;
                     // Draw button for the scene > What we want to do with it ?
                     if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
                         Debug.Log(_SceneName);
 
                     // Draw more choice under scene..
-                    using (new EditorGUILayout.HorizontalScope())
+                    using (new GUILayout.HorizontalScope())
                     {
-                        GUI.enabled = !scene.Active;
-                        // Dsiable if this scene open
-                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
+                        if (!_Scene.IsRenameSceneActive)
                         {
-                            scene.Hide = !scene.Hide;
-                            // OnToolbarGUI();
-                        }
-                        GUI.enabled = true;
+                            // Dsiable if this scene open
+                            GUI.enabled = !_Scene.Active;
+                            // Un/Hide scene
+                            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(_Scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
+                                _Scene.Hide = !_Scene.Hide;
+                            // Enable gui again
+                            GUI.enabled = true;
 
-                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
-                        {
-                            Debug.Log("Rename scene");
-                        }
-                        if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
-                        {
-                            // Ask for confirmation
-                            if (EditorUtility.DisplayDialog("Delete Confirmation", "Are you sure you want to delete this scene?", "Delete", "Cancel"))
+                            // Rename a scene
+                            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                             {
-                                // Delete meta file
-                                File.Delete(scene.ScenePath + ".meta");
-                                // Delete scene file
-                                File.Delete(scene.ScenePath);
-                                // Remove scene from the list
-                                _DataSettings.SceneList.Remove(scene);
-                                // Refresh unity
-                                AssetDatabase.Refresh();
+                                // Set scene name
+                                // _NewSceneName = _Scene.Scene.name;
+                                // Show rename text field
+                                _Scene.IsRenameSceneActive = true;
                             }
-                            else
-                                Debug.Log("Cancel");
-                            // SCene.(EditorSceneManager.GetSceneByName(scene.Scene.name), true);
+
+
+                            // Delete a scene
+                            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
+                            {
+                                // Ask for confirmation
+                                if (EditorUtility.DisplayDialog("Delete Confirmation", "Are you sure you want to delete this scene?", "Delete", "Cancel"))
+                                {
+                                    // Delete meta file
+                                    File.Delete(_Scene.ScenePath + ".meta");
+                                    // Delete scene file
+                                    File.Delete(_Scene.ScenePath);
+                                    // Remove scene from the list
+                                    _DataSettings.SceneList.Remove(_Scene);
+                                    // Refresh unity
+                                    AssetDatabase.Refresh();
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var _PressEnter = (_Scene.IsRenameSceneActive && Event.current.control && Event.current.keyCode == KeyCode.KeypadEnter || Event.current.keyCode == KeyCode.Return);
+                            // Event.current.Use();
+                            // 
+                            // Rename text field
+                            using (new GUILayout.HorizontalScope())
+                            {
+                                // Get the new scene name
+                                _NewSceneName = GUILayout.TextField(_NewSceneName);
+                                // Ok
+                                if (GUILayout.Button("Ok", GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)) || _PressEnter)
+                                {
+                                    // Apply new name
+                                    _Scene.SetNewSceneName(_NewSceneName);
+                                    // Refresh unity
+                                    AssetDatabase.Refresh();
+                                    _NewSceneName = string.Empty;
+                                }
+
+
+                            }
                         }
                     }
                     //
@@ -314,13 +346,17 @@ namespace ScenesBrowser
             // Get current scene
             var _CurrentScene = _DataSettings.SceneList.Find(c => c.Scene.name == sceneName);
 
-            var _Index = _DataSettings.SceneList.IndexOf(_CurrentScene);
-            // Save prev scene index
-            _DataSettings.m_PreviousScenesToolbarGridSize = _Index;
-            // Set active scene
-            _DataSettings.SetActiveScene(_CurrentScene);
-            // Open scene
-            EditorSceneManager.OpenScene(_CurrentScene.ScenePath);
+            // We have a scene ?
+            if (_CurrentScene != null)
+            {
+                var _Index = _DataSettings.SceneList.IndexOf(_CurrentScene);
+                // Save prev scene index
+                _DataSettings.m_PreviousScenesToolbarGridSize = _Index;
+                // Set active scene
+                _DataSettings.SetActiveScene(_CurrentScene);
+                // Open scene
+                EditorSceneManager.OpenScene(_CurrentScene.ScenePath);
+            }
         }
         /// <summary>
         /// Settings and refresh buttons
