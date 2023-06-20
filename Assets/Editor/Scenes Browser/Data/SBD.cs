@@ -26,27 +26,19 @@ namespace ScenesBrowser
         /// </summary>
         public void AddScene(SBScene sbScene) => _SceneList.Add(sbScene);
 
-        /*
+
         public bool IsSceneNotNull(string path) => _SceneList.Find(p => p.ScenePath == path) != null;
 
-           protected int _CurrentIndex = 0;
-          public int GetActiveScene(string sceneName)
-          {
-              // Deactivate all scene
-              for (var i = 0; i < _SceneList.Count; i++)
-                  _SceneList[i].Active = false;
+        public void SetActiveScene(string sceneName)
+        {
+            // Deactivate all scene
+            for (var i = 0; i < _SceneList.Count; i++)
+                _SceneList[i].Active = false;
 
-              //  Get active scene
-              var _ActiveScane = _SceneList.Find(ac => ac.Scene.name == sceneName);
-              _ActiveScane.Active = true;
-
-              _CurrentIndex = _SceneList.IndexOf(_ActiveScane);
-
-              if (_CurrentIndex >= _SceneList.Count - 1 && _ActiveScane.Hide)
-                  _CurrentIndex--;
-
-              return _CurrentIndex;
-          } */
+            //  Get active scene
+            var _ActiveScane = _SceneList.Find(ac => ac.Scene.name == sceneName);
+            _ActiveScane.Active = true;
+        }
 
 
     }

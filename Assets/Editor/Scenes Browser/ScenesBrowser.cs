@@ -47,7 +47,7 @@ namespace ScenesBrowser
         private static Texture2D _ActiveSceneTexture;
         protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
         protected static GUIStyle _ActiveSceneStyle, _SettingWindowSceneStyle;
-        private int _RawCount = 4, _SelectedRowIndex = 0;
+        private int _RawSize = 4, _SelectedRowIndex = 0;
         protected string[] _RowOptions = new string[] { "4", "8", "12" };
 
         #endregion
@@ -137,9 +137,12 @@ namespace ScenesBrowser
                     // Quick Access
                     _DataSettings.m_ShowQuickAccess = EditorGUILayout.Toggle(_DataSettings.m_ShowQuickAccess, GUILayout.MaxWidth(15));
                     EditorGUILayout.LabelField(_DataSettings.m_ShowQuickAccess ? " Hide Quick Access " : " Show Quick Access ", GUILayout.MaxWidth(128));
+                    // Draw vertical line
+                    EditorGUILayout.LabelField("", GUI.skin.verticalSlider, GUILayout.MaxWidth(10));
 
-                    _SelectedRowIndex = EditorGUILayout.Popup(_SelectedRowIndex, _RowOptions, GUILayout.MaxWidth(50));
-                    _RawCount = int.Parse(_RowOptions[_SelectedRowIndex]);
+                    EditorGUILayout.LabelField("Row size", GUILayout.MaxWidth(64));
+                    _SelectedRowIndex = EditorGUILayout.Popup(_SelectedRowIndex, _RowOptions, GUILayout.Width(32));
+                    _RawSize = int.Parse(_RowOptions[_SelectedRowIndex]);
                 }
                 // Draw scenes on window setting
                 DrawScenesOnWindowSetting();
@@ -162,9 +165,9 @@ namespace ScenesBrowser
             // Set scroll view : position
             var _ScrollViewPosition = new Rect(0, 0, Screen.width - 5, Screen.height - 120);
             // Set scroll view : contetn view
-            var _ScrollView = new Rect(0, 0, !maximized ? (_RawCount / 4) * (Screen.width - 20) : (Screen.width - 20), (_ButtonSize + 40) * _DataSettings.SceneList.Count / 5);
+            var _ScrollView = new Rect(0, 0, !maximized ? (_RawSize / 4) * (Screen.width - 20) : (Screen.width - 20), (_ButtonSize + 40) * _DataSettings.SceneList.Count / 5);
             // Begin scroll view
-            _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_ScrollViewPosition, _ScrollPositionOnSettingsWindow, _ScrollView, !maximized ? _RawCount > 4 : false, false);
+            _ScrollPositionOnSettingsWindow = GUI.BeginScrollView(_ScrollViewPosition, _ScrollPositionOnSettingsWindow, _ScrollView, !maximized ? _RawSize > 4 : false, false);
             // Setting window scene style  
             _SettingWindowSceneStyle = null ?? new GUIStyle("Button");
             _SettingWindowSceneStyle.alignment = TextAnchor.LowerCenter;
@@ -181,7 +184,7 @@ namespace ScenesBrowser
                 // Draw scene 4/4
                 if (scene.Scene != null)
                 {
-                    if (_Count >= _RawCount)
+                    if (_Count >= _RawSize)
                     {
                         yPos += _ButtonSize + 5;
                         _Count = 0;
@@ -343,6 +346,8 @@ namespace ScenesBrowser
             var _Index = _DataSettings.SceneList.IndexOf(_DataSettings.SceneList.Find(c => c.Scene.name == sceneName));
             // Save prev scene index
             _DataSettings.m_PreviousScenesToolbarGridSize = _Index;
+            // Set active scene
+            _DataSettings.SetActiveScene(sceneName);
             // Open scene
             EditorSceneManager.OpenScene(_DataSettings.SceneList.Find(c => c.Scene.name == sceneName).ScenePath);
         }
