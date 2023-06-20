@@ -50,6 +50,7 @@ namespace ScenesBrowser
         private string _NewSceneName = "";
 
         public static bool IsPlayModeOn = false;
+        private Event receiveEventWindow;
 
         #endregion
 
@@ -68,8 +69,6 @@ namespace ScenesBrowser
         [InitializeOnLoadMethod]
         private static void LoadScenesBrowser()
         {
-            // SceneStyles.LoadTextures();
-
             // We don't have settings-data ? 
             if (!_DataSettings)
                 SetupSettingsData();
@@ -87,12 +86,11 @@ namespace ScenesBrowser
 
             EditorApplication.playModeStateChanged += PlayModeON;
         }
+
         protected static void PlayModeON(PlayModeStateChange state) => IsPlayModeOn = state == PlayModeStateChange.EnteredPlayMode;
 
         private void OnGUI()
         {
-
-
             // No data?
             if (_DataSettings)
             {
@@ -208,6 +206,7 @@ namespace ScenesBrowser
                     // Draw more choice under scene..
                     using (new GUILayout.HorizontalScope())
                     {
+
                         if (!_Scene.IsRenameSceneActive)
                         {
                             // Dsiable if this scene open
@@ -217,6 +216,8 @@ namespace ScenesBrowser
                                 _Scene.Hide = !_Scene.Hide;
                             // Enable gui again
                             GUI.enabled = true;
+
+                            GUI.enabled = !IsPlayModeOn;
 
                             // Rename a scene
                             if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
@@ -243,17 +244,27 @@ namespace ScenesBrowser
                                     AssetDatabase.Refresh();
                                 }
                             }
+                            GUI.enabled = true;
+
                         }
                         else
                         {
-                            var _PressEnter = (_Scene.IsRenameSceneActive && Event.current.control && Event.current.keyCode == KeyCode.KeypadEnter || Event.current.keyCode == KeyCode.Return);
-                            // Event.current.Use();
-                            // 
+                            GUI.enabled = !IsPlayModeOn;
+                            //Press enter
+                            var _PressEnter = !IsPlayModeOn && (_Scene.IsRenameSceneActive && Event.current.keyCode == KeyCode.KeypadEnter || Event.current.keyCode == KeyCode.Return);
+                            // Press escape
+                            var _PressEscape = _Scene.IsRenameSceneActive && Event.current.keyCode == KeyCode.Escape;
+
                             // Rename text field
                             using (new GUILayout.HorizontalScope())
                             {
                                 // Get the new scene name
                                 _NewSceneName = GUILayout.TextField(_NewSceneName);
+
+                                // Cancel
+                                if (_PressEscape)
+                                    _Scene.DisableRename();
+
                                 // Ok
                                 if (GUILayout.Button("Ok", GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)) || _PressEnter)
                                 {
@@ -267,6 +278,8 @@ namespace ScenesBrowser
                                     AssetDatabase.Refresh();
                                 }
                             }
+                            GUI.enabled = true;
+
                         }
                     }
                     //
