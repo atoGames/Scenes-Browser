@@ -40,6 +40,7 @@ namespace ScenesBrowser
         // Width & Heigth Settings and refresh BG
         protected static int _WidthSettingsAndRefreshBG = 26, _HeigthSettingsAndRefreshBG = 20;
         protected static Action<string> onOpenNewScene;
+        protected static Action onToolbarGUIChange;
         #endregion
 
         #region  Settings window
@@ -47,7 +48,7 @@ namespace ScenesBrowser
         protected static Vector2 _ScrollPositionOnSettingsWindow;
         protected float _ButtonSize = 122f;
         protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
-        protected static GUIStyle _ActiveSceneStyle, _SettingWindowSceneStyle;
+        protected static GUIStyle _ToolbarSceneStyle, _SettingWindowSceneStyle;
         private int _RowCount = 4, _SelectedRowIndex = 0;
         protected string[] _RowCountOptions = new string[] { "4", "8", "12" };
         private string _NewSceneName = "";
@@ -80,17 +81,19 @@ namespace ScenesBrowser
             // We have the data
             if (_DataSettings)
                 ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
-            // 
-            ReloadScenes();
+            //
+            EditorApplication.playModeStateChanged += PlayModeON;
             // 
             onOpenNewScene += OpenNewScene;
+            //
+            onToolbarGUIChange += OnToolbarGUI;
+            // 
+            ReloadScenes();
             // select last saved value 
             _SelectedSceneIndex = _DataSettings.m_CurrentSceneIndex;
             // On scene change
-            OnSceneChange();
+            // OnSceneChange();
 
-
-            EditorApplication.playModeStateChanged += PlayModeON;
         }
 
         protected static void PlayModeON(PlayModeStateChange state) => IsPlayModeOn = state == PlayModeStateChange.EnteredPlayMode;
@@ -214,6 +217,8 @@ namespace ScenesBrowser
                     GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
                     // Get scene name
                     var _SceneName = _Scene.Scene.name;
+
+                    GUI.enabled = !_Scene.Hide;
                     // Draw button for the scene > What we want to do with it ?
                     if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
                     {
@@ -221,6 +226,8 @@ namespace ScenesBrowser
                         if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                             onOpenNewScene?.Invoke(_Scene.Scene.name);
                     }
+                    GUI.enabled = true;
+
                     // Draw more choice under scene..
                     using (new GUILayout.HorizontalScope())
                     {
@@ -231,7 +238,11 @@ namespace ScenesBrowser
                             GUI.enabled = !_Scene.Active;
                             // Un/Hide scene
                             if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(_Scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
+                            {
                                 _Scene.Hide = !_Scene.Hide;
+                                // Update
+                                onToolbarGUIChange?.Invoke();
+                            }
                             // Enable gui again
                             GUI.enabled = true;
 
@@ -314,7 +325,8 @@ namespace ScenesBrowser
 
                 if (GUILayout.Button(new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Width(Screen.width - 170), GUILayout.Height(25)))
                 {
-                    ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
+                    // ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
+                    onToolbarGUIChange?.Invoke();
                     EditorUtility.SetDirty(_DataSettings);
                     AssetDatabase.SaveAssets();
                 }
@@ -409,7 +421,26 @@ namespace ScenesBrowser
         {
             var _SceneAndIconArray = GetSceneNameAndIcon();
             // Scene on Tool bar > If the user has hidden a scene, this will select the next scene .. but not activated
-            _SelectedSceneIndex = GUILayout.Toolbar(_SelectedSceneIndex, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
+            // _SelectedSceneIndex = GUILayout.Toolbar(_SelectedSceneIndex, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
+            using (var scenes = new EditorGUILayout.HorizontalScope())
+            {
+
+                foreach (var scene in _DataSettings.SceneList.ToList())
+                {
+                    if (!scene.Hide)
+                    {
+                        GUI.enabled = !scene.Active;
+                        if (GUILayout.Button(new GUIContent(" " + scene.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image), GUILayout.Width(_Width), GUILayout.MaxHeight(_Heigth)))
+                        {
+                            if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                                // Open scene
+                                onOpenNewScene?.Invoke(scene.Scene.name);
+                        }
+                        GUI.enabled = true;
+                    }
+
+                }
+            }
 
             // Not the same scene ? load the new scene
             if (GUI.changed)
@@ -417,7 +448,7 @@ namespace ScenesBrowser
                 // If there unsave change > ask if i want to save , If user click yes
                 if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                     // Open scene
-                    onOpenNewScene?.Invoke(_SceneAndIconArray[_SelectedSceneIndex].text);
+                    onOpenNewScene?.Invoke(_SceneAndIconArray[_SelectedSceneIndex > _SceneAndIconArray.Length ? 0 : _SelectedSceneIndex].text);
                 // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
                 GUIUtility.ExitGUI();
             }
