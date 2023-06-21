@@ -18,7 +18,9 @@ namespace ScenesBrowser
 {
     public class ScenesBrowser : EditorWindow
     {
-        protected static readonly GUIContent _WindowName = EditorGUIUtility.TrTextContent("Scenes Browser - Settings");
+        protected static Texture _ScenesBrowserIcon;
+        protected static GUIContent _WindowName;
+
         protected static EditorWindow _EditorWindow;
         protected static readonly Vector2 _WindowSettingsMaxSize = new Vector2(512, 350);
         // w/h
@@ -56,6 +58,10 @@ namespace ScenesBrowser
         [MenuItem("Scenes Browser/Settings %E")]
         public static void ShowScenesBrowserSettings()
         {
+            // Load icon
+            _ScenesBrowserIcon = EditorGUIUtility.IconContent("Favorite@2x").image;// AssetDatabase.LoadAssetAtPath<Texture>("Assets/Scenes Browser/Icon/.png");
+            _WindowName = EditorGUIUtility.TrTextContent("Scenes Browser - Settings", _ScenesBrowserIcon);
+
             _EditorWindow = GetWindowSettings;
             _EditorWindow.titleContent = _WindowName;
             _EditorWindow.minSize = _WindowSettingsMaxSize;
@@ -88,10 +94,7 @@ namespace ScenesBrowser
 
         protected static void PlayModeON(PlayModeStateChange state) => IsPlayModeOn = state == PlayModeStateChange.EnteredPlayMode;
 
-        public void Callback(object obj)
-        {
-            Debug.Log("Selected: " + obj);
-        }
+
         private void OnGUI()
         {
             var _RectTest = new Rect(85, -10, Screen.width, 128);
@@ -305,23 +308,27 @@ namespace ScenesBrowser
             using (new EditorGUILayout.HorizontalScope())
             {
 
-                if (GUILayout.Button(new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Width(Screen.width - 220), GUILayout.Height(25)))
+                if (GUILayout.Button(new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Width(Screen.width - 170), GUILayout.Height(25)))
                 {
                     ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
                     EditorUtility.SetDirty(_DataSettings);
                     AssetDatabase.SaveAssets();
                 }
-                if (GUILayout.Button("Reload scenes", GUILayout.Width(128), GUILayout.Height(25)))
+                if (GUILayout.Button(new GUIContent(" Reload scenes", EditorGUIUtility.IconContent("RotateTool On").image), GUILayout.Width(128), GUILayout.Height(25)))
                 {
                     UpdateSceneInDictionary(true);
 
                 }
-                if (GUILayout.Button("US", GUILayout.Width(64), GUILayout.Height(25)))
+
+                if (GUILayout.Button(EditorGUIUtility.IconContent("d_Linked@2x"), GUILayout.Width(25), GUILayout.Height(25)))
                 {
                     // create the menu and add items to it
                     GenericMenu menu = new GenericMenu();
+                    var _Ss = new GUIStyle("Box");
 
-                    menu.AddItem(new GUIContent("MenuItem1"), false, Callback, "item 1");
+                    menu.AddItem(new GUIContent(" Toolbar Extender : GitHub"), false, OpenLink, "https://github.com/marijnz/unity-toolbar-extender");
+                    menu.AddItem(new GUIContent(" Scenes Browser : GitHub"), false, OpenLink, "https://github.com/atoGames/Scenes-Browser");
+                    menu.AddItem(new GUIContent(" Devloper on : Twitter"), false, OpenLink, "https://twitter.com/_atoGames");
                     menu.ShowAsContext();
                 }
             }
@@ -548,5 +555,12 @@ namespace ScenesBrowser
             // Return an array
             return _SceneNameAndIcon.ToArray();
         }
+
+        public void OpenLink(object obj)
+        {
+            Application.OpenURL(obj.ToString());
+        }
+
+
     }
 }
