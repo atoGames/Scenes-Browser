@@ -85,9 +85,10 @@ namespace ScenesBrowser
             // 
             onOpenNewScene += OpenNewScene;
             // select last saved value 
-            _SelectedSceneIndex = _DataSettings.m_PreviousScenesToolbarGridSize;
+            _SelectedSceneIndex = _DataSettings.m_CurrentSceneIndex;
             // On scene change
             OnSceneChange();
+
 
             EditorApplication.playModeStateChanged += PlayModeON;
         }
@@ -215,8 +216,11 @@ namespace ScenesBrowser
                     var _SceneName = _Scene.Scene.name;
                     // Draw button for the scene > What we want to do with it ?
                     if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
+                    {
                         Debug.Log(_SceneName);
-
+                        if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                            onOpenNewScene?.Invoke(_Scene.Scene.name);
+                    }
                     // Draw more choice under scene..
                     using (new GUILayout.HorizontalScope())
                     {
@@ -434,7 +438,8 @@ namespace ScenesBrowser
             {
                 var _Index = _DataSettings.SceneList.IndexOf(_CurrentScene);
                 // Save prev scene index
-                _DataSettings.m_PreviousScenesToolbarGridSize = _Index;
+                _DataSettings.m_CurrentSceneIndex = _Index;
+                _SelectedSceneIndex = _Index;
                 // Set active scene
                 _DataSettings.SetActiveScene(_CurrentScene);
                 // Open scene

@@ -9,34 +9,39 @@ namespace ScenesBrowser.Data
 {
     public class SBD : ScriptableObject
     {
-        public int m_PreviousScenesToolbarGridSize = 0;
-
+        // Save current index
+        public int m_CurrentSceneIndex = 0;
+        // Enable this to auto find scene in the project , else enter a folder path
         public bool m_AutoFindScene = true;
-        // True = Left , false = Rigth
+        // Toolbar at : True = Left , false = Rigth
         public bool m_IsLeft = true;
+        // Show or hide scens on toolbar
         public bool m_ShowQuickAccess = true;
+        // Scene folder path : to load scene from it
         public string m_ScenePath = string.Empty;
-
         // List of all scenes
         [SerializeField] protected List<SBScene> _SceneList = new();
+        // List of scenes
         public List<SBScene> SceneList { get => _SceneList; }
-        public bool IsContainScene(SceneAsset scene) => _SceneList.Find(c => c.Scene == scene) != null;
+
         /// <summary>
-        /// Add scene
+        /// Return true if the list has this scene
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <returns></returns>
+        public bool IsContainScene(SceneAsset scene) => _SceneList.Find(c => c.Scene == scene) != null;
+
+        /// <summary>
+        /// Add a scene
         /// </summary>
         public void AddScene(SBScene sbScene) => _SceneList.Add(sbScene);
-
-
-        public bool IsSceneNotNull(string path) => _SceneList.Find(p => p.ScenePath == path) != null;
-
+        /// <summary>
+        ///  Activate a scene
+        /// </summary>
+        /// <param name="sbScene"></param>
         public void SetActiveScene(SBScene sbScene)
         {
-            // Deactivate all scene
-            for (var i = 0; i < _SceneList.Count; i++)
-                _SceneList[i].Active = false;
-
-            //  Get active scene
-            sbScene.Active = true;
+            foreach (var scene in _SceneList) scene.Active = scene == sbScene;
         }
 
 
