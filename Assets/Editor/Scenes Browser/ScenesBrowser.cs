@@ -81,7 +81,7 @@ namespace ScenesBrowser
             if (_DataSettings)
                 ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
             // 
-            UpdateSceneInDictionary();
+            ReloadScenes();
             // 
             onOpenNewScene += OpenNewScene;
             // select last saved value 
@@ -158,7 +158,7 @@ namespace ScenesBrowser
                     EditorGUILayout.LabelField("", GUI.skin.verticalSlider, GUILayout.MaxWidth(10));
                     // Refresh
                     if (GUILayout.Button("Refresh", GUILayout.Width(64), GUILayout.Height(18)))
-                        UpdateSceneInDictionary();
+                        ReloadScenes();
                 }
                 // Draw scenes on window setting
                 DrawScenesOnWindowSetting();
@@ -318,21 +318,21 @@ namespace ScenesBrowser
                     EditorUtility.SetDirty(_DataSettings);
                     AssetDatabase.SaveAssets();
                 }
-                if (GUILayout.Button(new GUIContent(" Reload scenes", EditorGUIUtility.IconContent("RotateTool On").image), GUILayout.Width(128), GUILayout.Height(25)))
-                {
-                    UpdateSceneInDictionary(true);
-
-                }
+                // Reload scenes , this well update all
+                if (GUILayout.Button("Reload scenes", GUILayout.Width(128), GUILayout.Height(25)))
+                    ReloadScenes(true);
 
                 if (GUILayout.Button(EditorGUIUtility.IconContent("d_Linked@2x"), GUILayout.Width(25), GUILayout.Height(25)))
                 {
-                    // create the menu and add items to it
+                    // create the menu 
                     GenericMenu menu = new GenericMenu();
-                    var _Ss = new GUIStyle("Box");
-
+                    // and add items to it
                     menu.AddItem(new GUIContent(" Toolbar Extender : GitHub"), false, OpenLink, "https://github.com/marijnz/unity-toolbar-extender");
+                    menu.AddSeparator("");
                     menu.AddItem(new GUIContent(" Scenes Browser : GitHub"), false, OpenLink, "https://github.com/atoGames/Scenes-Browser");
-                    menu.AddItem(new GUIContent(" Devloper on : Twitter"), false, OpenLink, "https://twitter.com/_atoGames");
+                    menu.AddSeparator("");
+                    menu.AddItem(new GUIContent(" Follow me on : Twitter"), false, OpenLink, "https://twitter.com/_atoGames");
+                    // Show 
                     menu.ShowAsContext();
                 }
             }
@@ -459,13 +459,13 @@ namespace ScenesBrowser
                     ShowScenesBrowserSettings();
                 // Refresh
                 if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("Refresh@2x").image), GUILayout.Width(_WidthSettingsAndRefreshBG), GUILayout.Height(_HeigthSettingsAndRefreshBG)))
-                    UpdateSceneInDictionary();
+                    ReloadScenes();
             }
         }
         /// <summary>
-        /// Update scene in dictionary
+        /// Reload scenes
         /// </summary>
-        private static void UpdateSceneInDictionary(bool clearList = false)
+        private static void ReloadScenes(bool clearList = false)
         {
             // On scene change
             OnSceneChange(clearList);
