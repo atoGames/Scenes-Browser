@@ -5,8 +5,10 @@ using System.Linq;
 using ScenesBrowser.Data;
 using ScenesBrowser.Utils;
 using UnityEditor;
+using UnityEditor.Overlays;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UIElements;
 using UnityToolbarExtender;
 
 // Unity toolbar extender : https://github.com/marijnz/unity-toolbar-extender
@@ -18,7 +20,7 @@ namespace ScenesBrowser
     {
         protected static readonly GUIContent _WindowName = EditorGUIUtility.TrTextContent("Scenes Browser - Settings");
         protected static EditorWindow _EditorWindow;
-        protected static Vector2 _WindowSettingsMaxSize = new Vector2(512, 350);
+        protected static readonly Vector2 _WindowSettingsMaxSize = new Vector2(512, 350);
         // w/h
         protected static float _Width = 128, _Heigth = 20;
         // For filtering scenes
@@ -42,15 +44,12 @@ namespace ScenesBrowser
         // Scroll position on settings window
         protected static Vector2 _ScrollPositionOnSettingsWindow;
         protected float _ButtonSize = 122f;
-        private static Texture2D _ActiveSceneTexture;
         protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
         protected static GUIStyle _ActiveSceneStyle, _SettingWindowSceneStyle;
         private int _RowCount = 4, _SelectedRowIndex = 0;
         protected string[] _RowCountOptions = new string[] { "4", "8", "12" };
         private string _NewSceneName = "";
-
         public static bool IsPlayModeOn = false;
-        private Event receiveEventWindow;
 
         #endregion
 
@@ -89,8 +88,20 @@ namespace ScenesBrowser
 
         protected static void PlayModeON(PlayModeStateChange state) => IsPlayModeOn = state == PlayModeStateChange.EnteredPlayMode;
 
+        public void Callback(object obj)
+        {
+            Debug.Log("Selected: " + obj);
+        }
         private void OnGUI()
         {
+            var _RectTest = new Rect(85, -10, Screen.width, 128);
+
+            // GUI.BeginGroup(_RectTest);
+            // GUI.Button(_RectTest, EditorGUIUtility.IconContent("_Help"));
+
+
+
+            // GUI.EndGroup();
             // No data?
             if (_DataSettings)
             {
@@ -142,7 +153,7 @@ namespace ScenesBrowser
                     // Draw vertical line
                     EditorGUILayout.LabelField("", GUI.skin.verticalSlider, GUILayout.MaxWidth(10));
                     // Refresh
-                    if (GUILayout.Button("Refresh", GUILayout.Height(18)))
+                    if (GUILayout.Button("Refresh", GUILayout.Width(64), GUILayout.Height(18)))
                         UpdateSceneInDictionary();
                 }
                 // Draw scenes on window setting
@@ -290,16 +301,54 @@ namespace ScenesBrowser
             // End scroll view
             GUI.EndScrollView();
 
-            // Save button
-            if (GUI.Button(new Rect(0, Screen.height - 110, Screen.width - 64, 26), new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image)))
+            GUILayout.Space(Screen.height - 160);
+            using (new EditorGUILayout.HorizontalScope())
             {
-                ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
-                EditorUtility.SetDirty(_DataSettings);
-                AssetDatabase.SaveAssets();
+
+                if (GUILayout.Button(new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Width(Screen.width - 220), GUILayout.Height(25)))
+                {
+                    ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
+                    EditorUtility.SetDirty(_DataSettings);
+                    AssetDatabase.SaveAssets();
+                }
+                if (GUILayout.Button("Reload scenes", GUILayout.Width(128), GUILayout.Height(25)))
+                {
+                    UpdateSceneInDictionary(true);
+
+                }
+                if (GUILayout.Button("US", GUILayout.Width(64), GUILayout.Height(25)))
+                {
+                    // create the menu and add items to it
+                    GenericMenu menu = new GenericMenu();
+
+                    menu.AddItem(new GUIContent("MenuItem1"), false, Callback, "item 1");
+                    menu.ShowAsContext();
+                }
             }
-            // Clear all 
-            if (GUI.Button(new Rect(Screen.width - 64, Screen.height - 110, 50, 26), "Clear"))
-                UpdateSceneInDictionary(true);
+
+            /* 
+               var _ButtonReloadScenesSize = 110;
+            var _BottomPosition = Screen.height - 110;
+             // Save button
+             if (GUI.Button(new Rect(0, _BottomPosition, Screen.width - 150, 26), new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image)))
+             {
+                 ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
+                 EditorUtility.SetDirty(_DataSettings);
+                 AssetDatabase.SaveAssets();
+             }
+             // Clear all 
+             if (GUI.Button(new Rect(Screen.width - 150, _BottomPosition, 100, 26), "Reload scenes"))
+                 UpdateSceneInDictionary(true);
+
+             if (GUI.Button(new Rect(Screen.width - 50, _BottomPosition, 32, 26), "US"))
+             {
+                 // create the menu and add items to it
+                 GenericMenu menu = new GenericMenu();
+
+                 menu.AddItem(new GUIContent("MenuItem1"), false, Callback, "item 1");
+                 menu.ShowAsContext();
+             } */
+
 
             GUI.EndGroup();
         }
