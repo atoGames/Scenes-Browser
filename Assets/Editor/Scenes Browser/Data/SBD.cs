@@ -10,7 +10,7 @@ namespace ScenesBrowser.Data
     public class SBD : ScriptableObject
     {
         // Save current index
-        public int m_CurrentSceneIndex = 0;
+        // public int m_CurrentSceneIndex = 0;
         // Enable this to auto find scene in the project , else enter a folder path
         public bool m_AutoFindScene = true;
         // Toolbar at : True = Left , false = Rigth

@@ -33,7 +33,7 @@ namespace ScenesBrowser
         protected static SBD _DataSettings;
 
         #region Toolbar 
-        protected static int _SelectedSceneIndex = 0;
+        // protected static int _SelectedSceneIndex = 0;
         protected string _ShowToolbarAt = "Show Toolbar At: ";
         // For scroll content 
         protected static Vector2 _ScrollPositionOnToolbar;
@@ -48,7 +48,7 @@ namespace ScenesBrowser
         protected static Vector2 _ScrollPositionOnSettingsWindow;
         protected float _ButtonSize = 122f;
         protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
-        protected static GUIStyle _ToolbarSceneStyle, _SettingWindowSceneStyle;
+        protected static GUIStyle _SettingWindowSceneStyle;
         private int _RowCount = 4, _SelectedRowIndex = 0;
         protected string[] _RowCountOptions = new string[] { "4", "8", "12" };
         private string _NewSceneName = "";
@@ -90,7 +90,7 @@ namespace ScenesBrowser
             // 
             ReloadScenes();
             // select last saved value 
-            _SelectedSceneIndex = _DataSettings.m_CurrentSceneIndex;
+            // _SelectedSceneIndex = _DataSettings.m_CurrentSceneIndex;
             // On scene change
             // OnSceneChange();
 
@@ -222,7 +222,6 @@ namespace ScenesBrowser
                     // Draw button for the scene > What we want to do with it ?
                     if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
                     {
-                        Debug.Log(_SceneName);
                         if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                             onOpenNewScene?.Invoke(_Scene.Scene.name);
                     }
@@ -297,12 +296,24 @@ namespace ScenesBrowser
                                 // Ok
                                 if (GUILayout.Button("Ok", GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)) || _PressEnter)
                                 {
-                                    if (_NewSceneName != string.Empty)
-                                        // Apply new name
-                                        _Scene.SetNewSceneName(_NewSceneName);
-                                    else
-                                        _Scene.DisableRename();
+                                    var _CurrentScene = _Scene;
+                                    if (_CurrentScene != _Scene && _DataSettings.SceneList.Find(fMatch => fMatch.Scene.name == _NewSceneName) != null)
+                                    {
+                                        if (EditorUtility.DisplayDialog("Scene name match anther scene", "Try again with different name", "Ok"))
+                                        {
+                                            Debug.Log("Close");
+                                            // _Scene.DisableRename();
 
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (_NewSceneName != string.Empty)
+                                            // Apply new name
+                                            _Scene.SetNewSceneName(_NewSceneName);
+                                        else
+                                            _Scene.DisableRename();
+                                    }
                                     // Refresh unity
                                     AssetDatabase.Refresh();
                                 }
@@ -427,14 +438,16 @@ namespace ScenesBrowser
 
                 foreach (var scene in _DataSettings.SceneList.ToList())
                 {
-                    if (!scene.Hide)
+                    var _Scene = scene;
+                    if (!_Scene.Hide)
                     {
-                        GUI.enabled = !scene.Active;
-                        if (GUILayout.Button(new GUIContent(" " + scene.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image), GUILayout.Width(_Width), GUILayout.MaxHeight(_Heigth)))
+                        GUI.enabled = !_Scene.Active;
+                        if (GUILayout.Button(new GUIContent(" " + _Scene.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image), GUILayout.Width(_Width), GUILayout.MaxHeight(_Heigth)))
                         {
+                            // Debug.Log("_Scene.Scene.name");
                             if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                                 // Open scene
-                                onOpenNewScene?.Invoke(scene.Scene.name);
+                                onOpenNewScene?.Invoke(_Scene.Scene.name);
                         }
                         GUI.enabled = true;
                     }
@@ -443,7 +456,7 @@ namespace ScenesBrowser
             }
 
             // Not the same scene ? load the new scene
-            if (GUI.changed)
+            /* if (GUI.changed)
             {
                 // If there unsave change > ask if i want to save , If user click yes
                 if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
@@ -451,7 +464,7 @@ namespace ScenesBrowser
                     onOpenNewScene?.Invoke(_SceneAndIconArray[_SelectedSceneIndex > _SceneAndIconArray.Length ? 0 : _SelectedSceneIndex].text);
                 // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
                 GUIUtility.ExitGUI();
-            }
+            } */
         }
         /// <summary>
         /// Open new scene by index
@@ -469,8 +482,8 @@ namespace ScenesBrowser
             {
                 var _Index = _DataSettings.SceneList.IndexOf(_CurrentScene);
                 // Save prev scene index
-                _DataSettings.m_CurrentSceneIndex = _Index;
-                _SelectedSceneIndex = _Index;
+                // _DataSettings.m_CurrentSceneIndex = _Index;
+                // _SelectedSceneIndex = _Index;
                 // Set active scene
                 _DataSettings.SetActiveScene(_CurrentScene);
                 // Open scene
