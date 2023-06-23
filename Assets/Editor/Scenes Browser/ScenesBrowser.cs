@@ -10,6 +10,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityToolbarExtender;
+using static UnityEditor.EditorGUI;
 
 // Unity toolbar extender : https://github.com/marijnz/unity-toolbar-extender
 // Unity editor icons Link : https://github.com/halak/unity-editor-icons
@@ -31,6 +32,7 @@ namespace ScenesBrowser
         protected static string[] _AllScenesPathInProject;
         // To save stuff
         protected static SBD _DataSettings;
+        protected static object _CurrentScene;
 
         #region Toolbar 
         // protected static int _SelectedSceneIndex = 0;
@@ -89,6 +91,7 @@ namespace ScenesBrowser
             onToolbarGUIChange += OnToolbarGUI;
             // 
             ReloadScenes();
+            _CurrentScene = null;
             // select last saved value 
             // _SelectedSceneIndex = _DataSettings.m_CurrentSceneIndex;
             // On scene change
@@ -196,195 +199,181 @@ namespace ScenesBrowser
             var yPos = 0f;
             var _ChoiceWidth = 36f;
             var _Count = 0;
+            var _RenameSceneIsOcpait = false;
 
-            // foreach (var scene in _SceneDictionary)
-            foreach (var sc in _DataSettings.SceneList.ToList())
+            using (new DisabledScope(IsPlayModeOn))
             {
-                var _Scene = sc;
-
-                // Draw scene 4/4
-                if (_Scene.Scene != null)
+                // foreach (var scene in _SceneDictionary)
+                foreach (var sc in _DataSettings.SceneList.ToList())
                 {
-                    if (_Count >= _RowCount)
+                    var _Scene = sc;
+
+                    // Draw scene 4/4
+                    if (_Scene.Scene != null)
                     {
-                        yPos += _ButtonSize + 5;
-                        _Count = 0;
-                    }
-
-                    var xPos = (_ButtonSize + 2) * _Count;
-                    var _ButtonRect = new Rect(xPos, yPos, _ButtonSize, _ButtonSize);
-
-                    GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
-                    // Get scene name
-                    var _SceneName = _Scene.Scene.name;
-
-                    GUI.enabled = !_Scene.Hide;
-                    // Draw button for the scene > What we want to do with it ?
-                    if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
-                    {
-                        if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                            onOpenNewScene?.Invoke(_Scene.Scene.name);
-                    }
-                    GUI.enabled = true;
-
-                    // Draw more choice under scene..
-                    using (new GUILayout.HorizontalScope())
-                    {
-
-                        if (!_Scene.IsRenameSceneActive)
+                        if (_Count >= _RowCount)
                         {
-                            // Dsiable if this scene open
-                            GUI.enabled = !_Scene.Active;
-                            // Un/Hide scene
-                            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(_Scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
+                            yPos += _ButtonSize + 5;
+                            _Count = 0;
+                        }
+
+                        var xPos = (_ButtonSize + 2) * _Count;
+                        var _ButtonRect = new Rect(xPos, yPos, _ButtonSize, _ButtonSize);
+
+                        GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
+                        // Get scene name
+                        var _SceneName = _Scene.Scene.name;
+
+                        // Draw button for the scene 
+                        using (new DisabledScope(_Scene.Hide || _Scene.Active))
+                        {
+                            if (GUILayout.Button(new GUIContent(_SceneName, EditorGUIUtility.IconContent("SceneAsset On Icon").image), _SettingWindowSceneStyle, GUILayout.Height(_ButtonSize - 26)))
                             {
-                                _Scene.Hide = !_Scene.Hide;
-                                // Update
-                                onToolbarGUIChange?.Invoke();
+                                if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                                    onOpenNewScene?.Invoke(_Scene.Scene.name);
                             }
-                            // Enable gui again
-                            GUI.enabled = true;
+                        }
+                        // Draw more choice under scene..
+                        using (new GUILayout.HorizontalScope())
+                        {
 
-                            GUI.enabled = !IsPlayModeOn;
-
-                            // Rename a scene
-                            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
+                            if (!_Scene.IsRenameSceneActive)
                             {
-                                // Set scene name
-                                _NewSceneName = _Scene.Scene.name;
-                                // Show rename text field
-                                _Scene.IsRenameSceneActive = true;
-                            }
-
-                            // Delete a scene
-                            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
-                            {
-                                // Ask for confirmation
-                                if (EditorUtility.DisplayDialog("Delete Confirmation", "Are you sure you want to delete this scene?", "Delete", "Cancel"))
+                                // Dsiable if this scene open
+                                using (new DisabledScope(_Scene.Active))
                                 {
-                                    // Delete meta file
-                                    File.Delete(_Scene.ScenePath + ".meta");
-                                    // Delete scene file
-                                    File.Delete(_Scene.ScenePath);
-                                    // Remove scene from the list
-                                    _DataSettings.SceneList.Remove(_Scene);
-                                    // Refresh unity
-                                    AssetDatabase.Refresh();
+                                    // Un/Hide scene
+                                    if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent(_Scene.Hide ? "animationvisibilitytoggleon@2x" : "animationvisibilitytoggleoff@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
+                                    {
+                                        _Scene.Hide = !_Scene.Hide;
+                                        // Update
+                                        onToolbarGUIChange?.Invoke();
+                                    }
+                                }
+                                // Rename a scene scope
+                                using (new DisabledScope(_DataSettings.SceneList.Any(fMatch => fMatch.IsRenameSceneActive)))
+                                {
+                                    // Rename a scene
+                                    if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
+                                    {
+                                        _CurrentScene = _Scene;
+                                        // Set scene name
+                                        _NewSceneName = _Scene.Scene.name;
+                                        // Show rename text field
+                                        _Scene.IsRenameSceneActive = true;
+                                    }
+                                }
+                                // Delete a scene
+                                if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("TreeEditor.Trash").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
+                                {
+                                    // Ask for confirmation
+                                    if (EditorUtility.DisplayDialog("Delete Confirmation", "Are you sure you want to delete this scene?", "Delete", "Cancel"))
+                                    {
+                                        // Delete meta file
+                                        File.Delete(_Scene.ScenePath + ".meta");
+                                        // Delete scene file
+                                        File.Delete(_Scene.ScenePath);
+                                        // Remove scene from the list
+                                        _DataSettings.SceneList.Remove(_Scene);
+                                        // Refresh unity
+                                        AssetDatabase.Refresh();
+                                    }
                                 }
                             }
-                            GUI.enabled = true;
-
-                        }
-                        else
-                        {
-                            GUI.enabled = !IsPlayModeOn;
-                            //Press enter
-                            var _PressEnter = !IsPlayModeOn && (_Scene.IsRenameSceneActive && Event.current.keyCode == KeyCode.KeypadEnter || Event.current.keyCode == KeyCode.Return);
-                            // Press escape
-                            var _PressEscape = _Scene.IsRenameSceneActive && Event.current.keyCode == KeyCode.Escape;
-
-                            // Rename text field
-                            using (new GUILayout.HorizontalScope())
+                            else
                             {
-                                // Get the new scene name
-                                _NewSceneName = GUILayout.TextField(_NewSceneName);
+                                //Press enter
+                                var _PressEnter = !IsPlayModeOn && (_Scene.IsRenameSceneActive && Event.current.keyCode == KeyCode.KeypadEnter || Event.current.keyCode == KeyCode.Return);
+                                // Press escape
+                                var _PressEscape = _Scene.IsRenameSceneActive && Event.current.keyCode == KeyCode.Escape;
 
-                                // Cancel
-                                if (_PressEscape)
-                                    _Scene.DisableRename();
-
-                                // Ok
-                                if (GUILayout.Button("Ok", GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)) || _PressEnter)
+                                // Rename text field
+                                using (new GUILayout.HorizontalScope())
                                 {
-                                    var _CurrentScene = _Scene;
-                                    if (_CurrentScene != _Scene && _DataSettings.SceneList.Find(fMatch => fMatch.Scene.name == _NewSceneName) != null)
+                                    // Get the new scene name
+                                    _NewSceneName = GUILayout.TextField(_NewSceneName);
+
+                                    // Cancel
+                                    if (_PressEscape)
                                     {
-                                        if (EditorUtility.DisplayDialog("Scene name match anther scene", "Try again with different name", "Ok"))
+                                        _CurrentScene = null;
+                                        _Scene.DisableRename();
+                                    }
+
+                                    // Ok
+                                    if (GUILayout.Button("Ok", GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)) || _PressEnter)
+                                    {
+                                        // Check for scene name match
+                                        if (_CurrentScene != _Scene && _DataSettings.SceneList.Find(fMatch => fMatch.Scene.name == _NewSceneName) != null)
                                         {
-                                            Debug.Log("Close");
-                                            // _Scene.DisableRename();
+                                            //  We find a match
+                                            if (EditorUtility.DisplayDialog("Scene name already exists", "Please try again with a different name.", "Close"))
+                                            {
+                                                Debug.Log("Close");
+                                                // _Scene.DisableRename();
 
+                                            }
                                         }
-                                    }
-                                    else
-                                    {
-                                        if (_NewSceneName != string.Empty)
-                                            // Apply new name
-                                            _Scene.SetNewSceneName(_NewSceneName);
                                         else
-                                            _Scene.DisableRename();
+                                        {
+                                            if (_NewSceneName != string.Empty)
+                                                // Apply new name
+                                                _Scene.SetNewSceneName(_NewSceneName);
+                                            else
+                                                _Scene.DisableRename();
+
+                                            _CurrentScene = null;
+                                        }
+                                        // Refresh unity
+                                        AssetDatabase.Refresh();
                                     }
-                                    // Refresh unity
-                                    AssetDatabase.Refresh();
                                 }
                             }
-                            GUI.enabled = true;
-
                         }
+                        //
+                        GUILayout.EndArea();
+                        _Count++;
                     }
-                    //
-                    GUILayout.EndArea();
-                    _Count++;
                 }
-            }
-            // End scroll view
-            GUI.EndScrollView();
+                // End scroll view
+                GUI.EndScrollView();
 
-            GUILayout.Space(Screen.height - 160);
-            using (new EditorGUILayout.HorizontalScope())
-            {
+                GUILayout.Space(Screen.height - 160);
 
-                if (GUILayout.Button(new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Width(Screen.width - 170), GUILayout.Height(25)))
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    // ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
-                    onToolbarGUIChange?.Invoke();
-                    EditorUtility.SetDirty(_DataSettings);
-                    AssetDatabase.SaveAssets();
-                }
-                // Reload scenes , this well update all
-                if (GUILayout.Button("Reload scenes", GUILayout.Width(128), GUILayout.Height(25)))
-                    ReloadScenes(true);
 
-                if (GUILayout.Button(EditorGUIUtility.IconContent("d_Linked@2x"), GUILayout.Width(25), GUILayout.Height(25)))
-                {
-                    // create the menu 
-                    GenericMenu menu = new GenericMenu();
-                    // and add items to it
-                    menu.AddItem(new GUIContent(" Toolbar Extender : GitHub"), false, OpenLink, "https://github.com/marijnz/unity-toolbar-extender");
-                    menu.AddSeparator("");
-                    menu.AddItem(new GUIContent(" Scenes Browser : GitHub"), false, OpenLink, "https://github.com/atoGames/Scenes-Browser");
-                    menu.AddSeparator("");
-                    menu.AddItem(new GUIContent(" Follow me on : Twitter"), false, OpenLink, "https://twitter.com/_atoGames");
-                    // Show 
-                    menu.ShowAsContext();
-                }
+                    if (GUILayout.Button(new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Width(Screen.width - 170), GUILayout.Height(25)))
+                    {
+                        // ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
+                        onToolbarGUIChange?.Invoke();
+                        EditorUtility.SetDirty(_DataSettings);
+                        AssetDatabase.SaveAssets();
+                    }
+                    // Reload scenes , this well update all
+                    if (GUILayout.Button("Reload scenes", GUILayout.Width(128), GUILayout.Height(25)))
+                        ReloadScenes(true);
+
+                    if (GUILayout.Button(EditorGUIUtility.IconContent("d_Linked@2x"), GUILayout.Width(25), GUILayout.Height(25)))
+                    {
+                        // create the menu 
+                        GenericMenu menu = new GenericMenu();
+                        // and add items to it
+                        menu.AddItem(new GUIContent(" Toolbar Extender : GitHub"), false, OpenLink, "https://github.com/marijnz/unity-toolbar-extender");
+                        menu.AddSeparator("");
+                        menu.AddItem(new GUIContent(" Scenes Browser : GitHub"), false, OpenLink, "https://github.com/atoGames/Scenes-Browser");
+                        menu.AddSeparator("");
+                        menu.AddItem(new GUIContent(" Follow me on : Twitter"), false, OpenLink, "https://twitter.com/_atoGames");
+                        // Show 
+                        menu.ShowAsContext();
+                    }
+                } // Here end
             }
-
-            /* 
-               var _ButtonReloadScenesSize = 110;
-            var _BottomPosition = Screen.height - 110;
-             // Save button
-             if (GUI.Button(new Rect(0, _BottomPosition, Screen.width - 150, 26), new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image)))
-             {
-                 ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
-                 EditorUtility.SetDirty(_DataSettings);
-                 AssetDatabase.SaveAssets();
-             }
-             // Clear all 
-             if (GUI.Button(new Rect(Screen.width - 150, _BottomPosition, 100, 26), "Reload scenes"))
-                 UpdateSceneInDictionary(true);
-
-             if (GUI.Button(new Rect(Screen.width - 50, _BottomPosition, 32, 26), "US"))
-             {
-                 // create the menu and add items to it
-                 GenericMenu menu = new GenericMenu();
-
-                 menu.AddItem(new GUIContent("MenuItem1"), false, Callback, "item 1");
-                 menu.ShowAsContext();
-             } */
-
-
             GUI.EndGroup();
+
+
+
+
         }
 
         /// <summary>
