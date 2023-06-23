@@ -196,10 +196,10 @@ namespace ScenesBrowser
             _SettingWindowSceneStyle.imagePosition = ImagePosition.ImageAbove;
             _SettingWindowSceneStyle.padding = new RectOffset(10, 10, 10, 10);
 
-            var yPos = 0f;
+            var _yPos = 0f;
             var _ChoiceWidth = 36f;
             var _Count = 0;
-            var _RenameSceneIsOcpait = false;
+            var _IsRenameSceneIsBeingUsed = _DataSettings.SceneList.Any(fMatch => fMatch.IsRenameSceneActive);
 
             using (new DisabledScope(IsPlayModeOn))
             {
@@ -213,12 +213,12 @@ namespace ScenesBrowser
                     {
                         if (_Count >= _RowCount)
                         {
-                            yPos += _ButtonSize + 5;
+                            _yPos += _ButtonSize + 5;
                             _Count = 0;
                         }
 
                         var xPos = (_ButtonSize + 2) * _Count;
-                        var _ButtonRect = new Rect(xPos, yPos, _ButtonSize, _ButtonSize);
+                        var _ButtonRect = new Rect(xPos, _yPos, _ButtonSize, _ButtonSize);
 
                         GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
                         // Get scene name
@@ -251,7 +251,7 @@ namespace ScenesBrowser
                                     }
                                 }
                                 // Rename a scene scope
-                                using (new DisabledScope(_DataSettings.SceneList.Any(fMatch => fMatch.IsRenameSceneActive)))
+                                using (new DisabledScope(_IsRenameSceneIsBeingUsed))
                                 {
                                     // Rename a scene
                                     if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
@@ -421,7 +421,7 @@ namespace ScenesBrowser
         {
             var _SceneAndIconArray = GetSceneNameAndIcon();
             // Scene on Tool bar > If the user has hidden a scene, this will select the next scene .. but not activated
-            // _SelectedSceneIndex = GUILayout.Toolbar(_SelectedSceneIndex, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
+            // TODO: Remove this _SelectedSceneIndex = GUILayout.Toolbar(_SelectedSceneIndex, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
             using (var scenes = new EditorGUILayout.HorizontalScope())
             {
 
@@ -443,17 +443,6 @@ namespace ScenesBrowser
 
                 }
             }
-
-            // Not the same scene ? load the new scene
-            /* if (GUI.changed)
-            {
-                // If there unsave change > ask if i want to save , If user click yes
-                if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                    // Open scene
-                    onOpenNewScene?.Invoke(_SceneAndIconArray[_SelectedSceneIndex > _SceneAndIconArray.Length ? 0 : _SelectedSceneIndex].text);
-                // To avoid : "EndLayoutGroup: BeginLayoutGroup must be called first."
-                GUIUtility.ExitGUI();
-            } */
         }
         /// <summary>
         /// Open new scene by index
