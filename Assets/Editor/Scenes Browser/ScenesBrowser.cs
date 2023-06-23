@@ -49,7 +49,6 @@ namespace ScenesBrowser
         // Scroll position on settings window
         protected static Vector2 _ScrollPositionOnSettingsWindow;
         protected float _ButtonSize = 122f;
-        protected static List<GUIContent> _SceneNameAndIcon = new List<GUIContent>();
         protected static GUIStyle _SettingWindowSceneStyle;
         private int _RowCount = 4, _SelectedRowIndex = 0;
         protected string[] _RowCountOptions = new string[] { "4", "8", "12" };
@@ -219,6 +218,8 @@ namespace ScenesBrowser
 
                         var xPos = (_ButtonSize + 2) * _Count;
                         var _ButtonRect = new Rect(xPos, _yPos, _ButtonSize, _ButtonSize);
+                        // Increase
+                        _Count++;
 
                         GUILayout.BeginArea(_ButtonRect, GUI.skin.box);
                         // Get scene name
@@ -330,9 +331,7 @@ namespace ScenesBrowser
                                 }
                             }
                         }
-                        //
                         GUILayout.EndArea();
-                        _Count++;
                     }
                 }
                 // End scroll view
@@ -342,7 +341,7 @@ namespace ScenesBrowser
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-
+                    // Save button
                     if (GUILayout.Button(new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Width(Screen.width - 170), GUILayout.Height(25)))
                     {
                         // ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
@@ -354,6 +353,7 @@ namespace ScenesBrowser
                     if (GUILayout.Button("Reload scenes", GUILayout.Width(128), GUILayout.Height(25)))
                         ReloadScenes(true);
 
+                    // Links
                     if (GUILayout.Button(EditorGUIUtility.IconContent("d_Linked@2x"), GUILayout.Width(25), GUILayout.Height(25)))
                     {
                         // create the menu 
@@ -367,15 +367,10 @@ namespace ScenesBrowser
                         // Show 
                         menu.ShowAsContext();
                     }
-                } // Here end
+                }
             }
             GUI.EndGroup();
-
-
-
-
         }
-
         /// <summary>
         /// On toolbar gui
         /// </summary>
@@ -419,9 +414,11 @@ namespace ScenesBrowser
         /// </summary>
         private static void DrawScenesOnToolbar()
         {
-            var _SceneAndIconArray = GetSceneNameAndIcon();
+            //  TODO: Remove this
+            // var _SceneAndIconArray = GetSceneNameAndIcon();
             // Scene on Tool bar > If the user has hidden a scene, this will select the next scene .. but not activated
-            // TODO: Remove this _SelectedSceneIndex = GUILayout.Toolbar(_SelectedSceneIndex, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
+            // _SelectedSceneIndex = GUILayout.Toolbar(_SelectedSceneIndex, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
+
             using (var scenes = new EditorGUILayout.HorizontalScope())
             {
 
@@ -558,36 +555,16 @@ namespace ScenesBrowser
             // Get (data.asset)
             _DataSettings = (_FindAllSettingsData.Length == 0) ? ScenesBrowserExtender.CreateNewData(_DataPath) : (SBD)EditorGUIUtility.Load(_FindAllSettingsData[0]);
         }
+        /// <summary>
+        /// Open a link
+        /// </summary>
+        protected void OpenLink(object obj) => Application.OpenURL(obj.ToString());
+
         private void NewReset()
         {
-            Debug.Log("Fun Reset $Remove me");
+            Debug.Log("Test Reset $Remove me");
             _DataSettings.m_ScenePath = "";
         }
-        public static GUIContent[] GetSceneNameAndIcon()
-        {
-            if (!_DataSettings) return null;
-
-            _SceneNameAndIcon.Clear();
-
-            // If user delete a scene manually , this scene we be in the list until he click refresh
-            foreach (var scene in _DataSettings.SceneList)
-            {
-                if (scene.Scene)
-                {
-                    // Scene hide not true  
-                    if (!scene.Hide)
-                        _SceneNameAndIcon.Add(new GUIContent(scene.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image));
-                }
-            }
-            // Return an array
-            return _SceneNameAndIcon.ToArray();
-        }
-
-        public void OpenLink(object obj)
-        {
-            Application.OpenURL(obj.ToString());
-        }
-
 
     }
 }
