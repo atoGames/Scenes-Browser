@@ -300,24 +300,20 @@ namespace ScenesBrowser
                                         _CurrentScene = null;
                                         _Scene.DisableRename();
                                     }
-
-                                    // Ok
+                                    // Ok , confirm the rename
                                     if (GUILayout.Button("Ok", GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)) || _PressEnter)
                                     {
+                                        var _HasThisName = _DataSettings.SceneList.Find(fMatch => fMatch.Scene.name == _NewSceneName);
                                         // Check for scene name match
-                                        if (_CurrentScene != _Scene && _DataSettings.SceneList.Find(fMatch => fMatch.Scene.name == _NewSceneName) != null)
+                                        if (_HasThisName != null && _HasThisName != _Scene)
                                         {
                                             //  We find a match
                                             if (EditorUtility.DisplayDialog("Scene name already exists", "Please try again with a different name.", "Close"))
-                                            {
-                                                Debug.Log("Close");
-                                                // _Scene.DisableRename();
-
-                                            }
+                                                Debug.Log("Close " + _Scene.Scene.name);
                                         }
                                         else
                                         {
-                                            if (_NewSceneName != string.Empty)
+                                            if (_NewSceneName != string.Empty) // up
                                                 // Apply new name
                                                 _Scene.SetNewSceneName(_NewSceneName);
                                             else
