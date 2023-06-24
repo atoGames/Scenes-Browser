@@ -1,14 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ScenesBrowser.Data;
 using ScenesBrowser.Utils;
 using UnityEditor;
-using UnityEditor.Overlays;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.UIElements;
 using UnityToolbarExtender;
 using static UnityEditor.EditorGUI;
 
@@ -19,20 +16,23 @@ namespace ScenesBrowser
 {
     public class ScenesBrowser : EditorWindow
     {
-        protected static Texture _ScenesBrowserIcon;
-        protected static GUIContent _WindowName;
-
         protected static EditorWindow _EditorWindow;
+        // Icon
+        protected static Texture _ScenesBrowserIcon;
+        // Window name
+        protected static GUIContent _WindowName;
+        // Window size
         protected static readonly Vector2 _WindowSettingsMaxSize = new Vector2(512, 350);
         // w/h
         protected static float _Width = 128, _Heigth = 20;
         // For filtering scenes
         protected const string _FilterBy = "*.unity";
+        // Save path
         private const string _DataSettingsSavePath = "Assets/Editor/Scenes Browser";
+        // Get all path for all scene in the project
         protected static string[] _AllScenesPathInProject;
         // To save stuff
         protected static SBD _DataSettings;
-        protected static object _CurrentScene;
 
         #region Toolbar 
         // protected static int _SelectedSceneIndex = 0;
@@ -82,23 +82,16 @@ namespace ScenesBrowser
             // We have the data
             if (_DataSettings)
                 ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
-            //
+
+            // Play mode state changed
             EditorApplication.playModeStateChanged += PlayModeON;
-            // 
+            // On open new scene
             onOpenNewScene += OpenNewScene;
-            //
+            // On toolbar gui change
             onToolbarGUIChange += OnToolbarGUI;
-            // 
+            // Reload scenes
             ReloadScenes();
-            _CurrentScene = null;
-            // select last saved value 
-            // _SelectedSceneIndex = _DataSettings.m_CurrentSceneIndex;
-            // On scene change
-            // OnSceneChange();
-
         }
-
-        protected static void PlayModeON(PlayModeStateChange state) => IsPlayModeOn = state == PlayModeStateChange.EnteredPlayMode;
 
 
         private void OnGUI()
@@ -257,7 +250,6 @@ namespace ScenesBrowser
                                     // Rename a scene
                                     if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_CustomTool@2x").image), GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)))
                                     {
-                                        _CurrentScene = _Scene;
                                         // Set scene name
                                         _NewSceneName = _Scene.Scene.name;
                                         // Show rename text field
@@ -296,10 +288,7 @@ namespace ScenesBrowser
 
                                     // Cancel
                                     if (_PressEscape)
-                                    {
-                                        _CurrentScene = null;
                                         _Scene.DisableRename();
-                                    }
                                     // Ok , confirm the rename
                                     if (GUILayout.Button("Ok", GUILayout.MaxWidth(_ChoiceWidth), GUILayout.MaxHeight((_ChoiceWidth + 2) / 2)) || _PressEnter)
                                     {
@@ -319,7 +308,6 @@ namespace ScenesBrowser
                                             else
                                                 _Scene.DisableRename();
 
-                                            _CurrentScene = null;
                                         }
                                         // Refresh unity
                                         AssetDatabase.Refresh();
@@ -555,6 +543,11 @@ namespace ScenesBrowser
         /// Open a link
         /// </summary>
         protected void OpenLink(object obj) => Application.OpenURL(obj.ToString());
+        /// <summary>
+        /// Check for play mode state
+        /// </summary>
+        /// <param name="state"></param>
+        protected static void PlayModeON(PlayModeStateChange state) => IsPlayModeOn = state == PlayModeStateChange.EnteredPlayMode;
 
         private void NewReset()
         {
