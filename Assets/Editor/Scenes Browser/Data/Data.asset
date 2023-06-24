@@ -20,7 +20,7 @@ MonoBehaviour:
   - ScenePath: Assets/Scenes/Level 8989.unity
     Scene: {fileID: 102900000, guid: bf2af0165dbe1f341bfd590a83baad36, type: 3}
     Hide: 0
-    Active: 0
+    Active: 1
     IsRenameSceneActive: 0
   - ScenePath: Assets/Scenes/aaa.unity
     Scene: {fileID: 102900000, guid: 3ef7b422d56701a4ba7f6a516a028854, type: 3}

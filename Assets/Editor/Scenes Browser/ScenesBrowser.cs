@@ -92,14 +92,12 @@ namespace ScenesBrowser
             onToolbarGUIChange += OnToolbarGUI;
             // Reload scenes
             ReloadScenes();
-
-
-
-
         }
-        static Overlay overlay;
-        OverlayCanvas m_OverlayCanvas;
-
+        private void OnDisable()
+        {
+            // If window close , save 
+            Save();
+        }
         private void OnGUI()
         {
             // No data?
@@ -326,7 +324,6 @@ namespace ScenesBrowser
                     // Save button
                     if (GUILayout.Button(new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Width(Screen.width - 170), GUILayout.Height(25)))
                     {
-                        // ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
                         Save();
                     }
                     // Reload scenes , this well update all
@@ -359,6 +356,8 @@ namespace ScenesBrowser
         protected void Save()
         {
             Debug.Log("Saved");
+            ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
+
             onToolbarGUIChange?.Invoke();
             EditorUtility.SetDirty(_DataSettings);
             AssetDatabase.SaveAssets();
