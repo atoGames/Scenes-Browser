@@ -4,6 +4,7 @@ using System.Linq;
 using ScenesBrowser.Data;
 using ScenesBrowser.Utils;
 using UnityEditor;
+using UnityEditor.Overlays;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityToolbarExtender;
@@ -91,19 +92,16 @@ namespace ScenesBrowser
             onToolbarGUIChange += OnToolbarGUI;
             // Reload scenes
             ReloadScenes();
-        }
 
+
+
+
+        }
+        static Overlay overlay;
+        OverlayCanvas m_OverlayCanvas;
 
         private void OnGUI()
         {
-            var _RectTest = new Rect(85, -10, Screen.width, 128);
-
-            // GUI.BeginGroup(_RectTest);
-            // GUI.Button(_RectTest, EditorGUIUtility.IconContent("_Help"));
-
-
-
-            // GUI.EndGroup();
             // No data?
             if (_DataSettings)
             {
@@ -329,9 +327,7 @@ namespace ScenesBrowser
                     if (GUILayout.Button(new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Width(Screen.width - 170), GUILayout.Height(25)))
                     {
                         // ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
-                        onToolbarGUIChange?.Invoke();
-                        EditorUtility.SetDirty(_DataSettings);
-                        AssetDatabase.SaveAssets();
+                        Save();
                     }
                     // Reload scenes , this well update all
                     if (GUILayout.Button("Reload scenes", GUILayout.Width(128), GUILayout.Height(25)))
@@ -355,6 +351,19 @@ namespace ScenesBrowser
             }
             GUI.EndGroup();
         }
+
+
+        /// <summary>
+        /// Save
+        /// </summary>
+        protected void Save()
+        {
+            Debug.Log("Saved");
+            onToolbarGUIChange?.Invoke();
+            EditorUtility.SetDirty(_DataSettings);
+            AssetDatabase.SaveAssets();
+        }
+
         /// <summary>
         /// On toolbar gui
         /// </summary>
@@ -440,9 +449,6 @@ namespace ScenesBrowser
             if (_CurrentScene != null)
             {
                 var _Index = _DataSettings.SceneList.IndexOf(_CurrentScene);
-                // Save prev scene index
-                // _DataSettings.m_CurrentSceneIndex = _Index;
-                // _SelectedSceneIndex = _Index;
                 // Set active scene
                 _DataSettings.SetActiveScene(_CurrentScene);
                 // Open scene
