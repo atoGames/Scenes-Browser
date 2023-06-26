@@ -15,9 +15,10 @@ using static UnityEditor.EditorGUI;
 
 namespace ScenesBrowser
 {
-    public class ScenesBrowser : EditorWindow
+    public class ScenesBrowser : EditorWindow/* , IHasCustomMenu */
     {
         protected static EditorWindow _EditorWindow;
+        protected readonly string _Ver = "Version: 0.01";
         // Icon
         protected static Texture _ScenesBrowserIcon;
         // Window name
@@ -63,7 +64,7 @@ namespace ScenesBrowser
         {
             // Load icon
             _ScenesBrowserIcon = EditorGUIUtility.IconContent("Favorite@2x").image;// AssetDatabase.LoadAssetAtPath<Texture>("Assets/Scenes Browser/Icon/.png");
-            _WindowName = EditorGUIUtility.TrTextContent("Scenes Browser - Settings", _ScenesBrowserIcon);
+            _WindowName = EditorGUIUtility.TrTextContentWithIcon("Scenes Browser - Settings", _ScenesBrowserIcon);
 
             _EditorWindow = GetWindowSettings;
             _EditorWindow.titleContent = _WindowName;
@@ -77,6 +78,7 @@ namespace ScenesBrowser
         [InitializeOnLoadMethod]
         private static void LoadScenesBrowser()
         {
+
             // We don't have settings-data ? 
             if (!_DataSettings)
                 SetupSettingsData();
@@ -93,13 +95,12 @@ namespace ScenesBrowser
             // Reload scenes
             ReloadScenes();
         }
-        private void OnDisable()
-        {
-            // If window close , save 
-            Save();
-        }
+
+        // OnGUI
         private void OnGUI()
         {
+            // GetWindowSettings.overlayCanvas.Add();
+
             // No data?
             if (_DataSettings)
             {
@@ -323,9 +324,7 @@ namespace ScenesBrowser
                 {
                     // Save button
                     if (GUILayout.Button(new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Width(Screen.width - 170), GUILayout.Height(25)))
-                    {
                         Save();
-                    }
                     // Reload scenes , this well update all
                     if (GUILayout.Button("Reload scenes", GUILayout.Width(128), GUILayout.Height(25)))
                         ReloadScenes(true);
@@ -349,20 +348,17 @@ namespace ScenesBrowser
             GUI.EndGroup();
         }
 
-
         /// <summary>
         /// Save
         /// </summary>
         protected void Save()
         {
-            Debug.Log("Saved");
+            Debug.Log("Save");
             ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
-
             onToolbarGUIChange?.Invoke();
             EditorUtility.SetDirty(_DataSettings);
             AssetDatabase.SaveAssets();
         }
-
         /// <summary>
         /// On toolbar gui
         /// </summary>
@@ -406,30 +402,25 @@ namespace ScenesBrowser
         /// </summary>
         private static void DrawScenesOnToolbar()
         {
-            //  TODO: Remove this
-            // var _SceneAndIconArray = GetSceneNameAndIcon();
-            // Scene on Tool bar > If the user has hidden a scene, this will select the next scene .. but not activated
-            // _SelectedSceneIndex = GUILayout.Toolbar(_SelectedSceneIndex, _SceneAndIconArray, GUILayout.MaxWidth(_Width * _SceneAndIconArray.Length), GUILayout.MaxHeight(_Heigth));
-
             using (var scenes = new EditorGUILayout.HorizontalScope())
             {
 
                 foreach (var scene in _DataSettings.SceneList.ToList())
                 {
                     var _Scene = scene;
+                    // The scene available ?
                     if (!_Scene.Hide)
                     {
                         GUI.enabled = !_Scene.Active;
                         if (GUILayout.Button(new GUIContent(" " + _Scene.Scene.name, EditorGUIUtility.IconContent("SceneAsset On Icon").image), GUILayout.Width(_Width), GUILayout.MaxHeight(_Heigth)))
                         {
-                            // Debug.Log("_Scene.Scene.name");
+                            // There unsave changes ? ask user to save 
                             if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                                 // Open scene
                                 onOpenNewScene?.Invoke(_Scene.Scene.name);
                         }
                         GUI.enabled = true;
                     }
-
                 }
             }
         }
@@ -445,22 +436,24 @@ namespace ScenesBrowser
             var _CurrentScene = _DataSettings.SceneList.Find(c => c.Scene.name == sceneName);
 
             // We have a scene ?
-            if (_CurrentScene != null)
+            if (_CurrentScene.ScenePath != string.Empty)
             {
-                var _Index = _DataSettings.SceneList.IndexOf(_CurrentScene);
                 // Set active scene
                 _DataSettings.SetActiveScene(_CurrentScene);
                 // Open scene
                 EditorSceneManager.OpenScene(_CurrentScene.ScenePath);
             }
+            else
+                Debug.LogWarning($"Scene file not found , this path is empty.. {_CurrentScene.ScenePath} click reload scene to update all");
         }
         /// <summary>
         /// Settings and refresh buttons
         /// </summary>
         private static void SettingsAndRefreshButton()
         {
+
             // Settings && Refresh
-            using (var scenes = new EditorGUILayout.HorizontalScope(GUILayout.Width(_WidthSettingsAndRefreshBG)))
+            using (var scenes = new EditorGUILayout.HorizontalScope(/* GUILayout.Width(_WidthSettingsAndRefreshBG) */))
             {
                 // Open settings
                 if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("EditorSettings Icon").image), GUILayout.Width(_WidthSettingsAndRefreshBG), GUILayout.Height(_HeigthSettingsAndRefreshBG)))
@@ -560,5 +553,9 @@ namespace ScenesBrowser
             _DataSettings.m_ScenePath = "";
         }
 
+        private void ShowButton(Rect rect)
+        {
+            GUI.Label(new Rect(rect.x - 60, rect.y, 100, rect.height), _Ver);
+        }
     }
 }
