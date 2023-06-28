@@ -18,11 +18,9 @@ namespace ScenesBrowser
     public class ScenesBrowser : EditorWindow/* , IHasCustomMenu */
     {
         protected static EditorWindow _EditorWindow;
-        protected readonly string _Ver = "Version: 0.01";
+        protected readonly string _Ver = "Version: 0.1";
         // Icon
         protected static Texture _ScenesBrowserIcon;
-        // Window name
-        protected static GUIContent _WindowName;
         // Window size
         protected static readonly Vector2 _WindowSettingsMaxSize = new Vector2(512, 350);
         // w/h
@@ -62,23 +60,24 @@ namespace ScenesBrowser
         [MenuItem("Scenes Browser/Settings %E")]
         public static void ShowScenesBrowserSettings()
         {
-            // Load icon
-            _ScenesBrowserIcon = EditorGUIUtility.IconContent("Favorite@2x").image;// AssetDatabase.LoadAssetAtPath<Texture>("Assets/Scenes Browser/Icon/.png");
-            _WindowName = EditorGUIUtility.TrTextContentWithIcon("Scenes Browser - Settings", _ScenesBrowserIcon);
-
+            // Set Window
             _EditorWindow = GetWindowSettings;
-            _EditorWindow.titleContent = _WindowName;
+            // Set min & max
             _EditorWindow.minSize = _WindowSettingsMaxSize;
             _EditorWindow.maxSize = _WindowSettingsMaxSize;
+            // Disable maximize button
             _EditorWindow.maximized = false;
+            // Load icon
+            _ScenesBrowserIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/Scenes Browser/Icon.png");
+            // Set title with icon
+            _EditorWindow.titleContent = EditorGUIUtility.TrTextContentWithIcon(" Scenes Browser - Settings ", _ScenesBrowserIcon);
         }
         // Get window settings
         protected static EditorWindow GetWindowSettings => EditorWindow.GetWindow(typeof(ScenesBrowser));
-
+        // On load
         [InitializeOnLoadMethod]
         private static void LoadScenesBrowser()
         {
-
             // We don't have settings-data ? 
             if (!_DataSettings)
                 SetupSettingsData();
@@ -95,12 +94,9 @@ namespace ScenesBrowser
             // Reload scenes
             ReloadScenes();
         }
-
         // OnGUI
         private void OnGUI()
         {
-            // GetWindowSettings.overlayCanvas.Add();
-
             // No data?
             if (_DataSettings)
             {
@@ -108,10 +104,11 @@ namespace ScenesBrowser
                 EditorGUILayout.BeginHorizontal();
                 using (var _SelectPath = new EditorGUILayout.HorizontalScope())
                 {
-                    var _AutoContent = ScenesBrowserExtender.GetGUIContent("Auto", "Auto find scenes");
-
+                    // Toggle for auto find
                     _DataSettings.m_AutoFindScene = EditorGUILayout.Toggle(_DataSettings.m_AutoFindScene, GUILayout.MaxWidth(20));
-                    EditorGUILayout.LabelField(_AutoContent, GUILayout.MaxWidth(50));
+                    // Label: auto find 
+                    EditorGUILayout.LabelField(ScenesBrowserExtender.GetGUIContent("Auto", "Auto find scenes"), GUILayout.MaxWidth(50));
+                    // Manually ?
                     if (!_DataSettings.m_AutoFindScene)
                     {
                         EditorGUILayout.BeginHorizontal();
@@ -128,7 +125,7 @@ namespace ScenesBrowser
                 var _ResetContent = ScenesBrowserExtender.GetGUIContent("", "Reset path", new GUIContent(EditorGUIUtility.IconContent("d_Preset.Context")).image);
 
                 if (GUILayout.Button(_ResetContent, GUILayout.Width(25), GUILayout.Height(_Heigth)))
-                    NewReset();
+                    ResetPath();
 
                 // End of top
                 EditorGUILayout.EndHorizontal();
@@ -265,6 +262,8 @@ namespace ScenesBrowser
                                         File.Delete(_Scene.ScenePath);
                                         // Remove scene from the list
                                         _DataSettings.SceneList.Remove(_Scene);
+                                        // Save
+                                        Save();
                                         // Refresh unity
                                         AssetDatabase.Refresh();
                                     }
@@ -300,8 +299,12 @@ namespace ScenesBrowser
                                         else
                                         {
                                             if (_NewSceneName != string.Empty) // up
+                                            {
                                                 // Apply new name
                                                 _Scene.SetNewSceneName(_NewSceneName);
+                                                // Save
+                                                Save();
+                                            }
                                             else
                                                 _Scene.DisableRename();
 
@@ -326,7 +329,7 @@ namespace ScenesBrowser
                     if (GUILayout.Button(new GUIContent("  Save", EditorGUIUtility.IconContent("SaveActive").image), GUILayout.Width(Screen.width - 170), GUILayout.Height(25)))
                         Save();
                     // Reload scenes , this well update all
-                    if (GUILayout.Button("Reload scenes", GUILayout.Width(128), GUILayout.Height(25)))
+                    if (GUILayout.Button("Reload all", GUILayout.Width(128), GUILayout.Height(25)))
                         ReloadScenes(true);
 
                     // Links
@@ -347,13 +350,10 @@ namespace ScenesBrowser
             }
             GUI.EndGroup();
         }
-
-        /// <summary>
         /// Save
-        /// </summary>
         protected void Save()
         {
-            Debug.Log("Save");
+            Debug.Log("Saved");
             ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
             onToolbarGUIChange?.Invoke();
             EditorUtility.SetDirty(_DataSettings);
@@ -373,8 +373,6 @@ namespace ScenesBrowser
         /// </summary>
         public static void ShowScenesOnToolbar()
         {
-            // Debug.Log("Show scenes on toolbar");
-
             // Settings and refresh button
             SettingsAndRefreshButton();
             // Scroll - all scenes 
@@ -404,7 +402,6 @@ namespace ScenesBrowser
         {
             using (var scenes = new EditorGUILayout.HorizontalScope())
             {
-
                 foreach (var scene in _DataSettings.SceneList.ToList())
                 {
                     var _Scene = scene;
@@ -469,7 +466,7 @@ namespace ScenesBrowser
         private static void ReloadScenes(bool clearList = false)
         {
             // On scene change
-            OnSceneChange(clearList);
+            _DataSettings?.OnSceneChange(clearList);
 
             // If Auto find scenes active > Find all scene in this ptoject
             if (_DataSettings.m_AutoFindScene)
@@ -482,7 +479,7 @@ namespace ScenesBrowser
                 else
                     Debug.LogError($"Path is null {_DataSettings.m_ScenePath}");
             }
-            // Start adding to dictionary
+            // Start adding
             foreach (var sc in _AllScenesPathInProject)
             {
                 // Get path
@@ -497,24 +494,6 @@ namespace ScenesBrowser
                     // Add it
                     _DataSettings.AddScene(_NewScene);
                 }
-            }
-        }
-        /// <summary>
-        /// Check for any change in scene
-        /// </summary>
-        private static void OnSceneChange(bool clearList = false)
-        {
-            // If this true , Clear
-            if (clearList)
-            {
-                _DataSettings.SceneList.Clear();
-                return;
-            }
-            // Else , Remove the empty one
-            for (int i = _DataSettings.SceneList.Count - 1; i >= 0; i--)
-            {
-                if (_DataSettings.SceneList[i].Scene == null)
-                    _DataSettings.SceneList.RemoveAt(i);
             }
         }
         /// <summary>
@@ -546,16 +525,9 @@ namespace ScenesBrowser
         /// </summary>
         /// <param name="state"></param>
         protected static void PlayModeON(PlayModeStateChange state) => IsPlayModeOn = state == PlayModeStateChange.EnteredPlayMode;
-
-        private void NewReset()
-        {
-            Debug.Log("Test Reset $Remove me");
-            _DataSettings.m_ScenePath = "";
-        }
-
-        private void ShowButton(Rect rect)
-        {
-            GUI.Label(new Rect(rect.x - 60, rect.y, 100, rect.height), _Ver);
-        }
+        // Reset Path
+        private void ResetPath() => _DataSettings.m_ScenePath = "";
+        // Show more thing on window toolbar 
+        private void ShowButton(Rect rect) => GUI.Label(new Rect(rect.x - 60, rect.y, 100, rect.height), _Ver);
     }
 }

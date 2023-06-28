@@ -27,7 +27,7 @@ namespace ScenesBrowser.Utils
             var _ScenePath = EditorUtility.OpenFolderPanel("Select Scenes Folder", path, "Scenes");
             // Path not null ?
             if (!string.IsNullOrEmpty(_ScenePath))
-                // Don't show full path .. just (Assets/..) , TODO: Don't allow path out of this project
+                // Don't show full path .. just (Assets/..) 
                 _DataSettings.m_ScenePath = (_ScenePath.Contains("Assets")) ? _ScenePath.Substring(_ScenePath.IndexOf("Assets")) : path;
         }
         public static Texture2D CreateNewTexture2D(int width, int height, Color col)
@@ -44,12 +44,10 @@ namespace ScenesBrowser.Utils
         }
         public static Color CreateNewColor(string hex = "3C3C3C")
         {
-            //    => new Color(60f / 256f, 60f / 256f, 60f / 256f, 1f);
             var _Color = new Color();
             // Get settings and refresh BG color 
             if (ColorUtility.TryParseHtmlString("#" + hex, out _Color))
                 return _Color;
-
             return _Color = Color.black;
         }
 
@@ -59,8 +57,6 @@ namespace ScenesBrowser.Utils
             _GUIContent.text = text;
             _GUIContent.tooltip = tooltip;
             _GUIContent.image = texture;
-
-
             return _GUIContent;
         }
 

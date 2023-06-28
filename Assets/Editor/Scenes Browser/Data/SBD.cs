@@ -44,7 +44,24 @@ namespace ScenesBrowser.Data
         {
             foreach (var scene in _SceneList) scene.Active = scene == sbScene;
         }
-
+        /// <summary>
+        /// Check for any change in scene
+        /// </summary>
+        public void OnSceneChange(bool clearList = false)
+        {
+            // If this true , Clear
+            if (clearList)
+            {
+                SceneList.Clear();
+                return;
+            }
+            // Else , Remove the empty one
+            for (int i = SceneList.Count - 1; i >= 0; i--)
+            {
+                if (SceneList[i].Scene == null)
+                    SceneList.RemoveAt(i);
+            }
+        }
 
     }
 }
