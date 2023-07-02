@@ -1,12 +1,8 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using ScenesBrowser.Utils;
 using UnityEditor;
 using UnityEngine;
 
-namespace ScenesBrowser.Data
+namespace ScenesBrowser.Utility
 {
     public class SBD : ScriptableObject
     {
@@ -15,9 +11,9 @@ namespace ScenesBrowser.Data
         // Enable this to auto find scene in the project , else enter a folder path
         public bool m_AutoFindScene = true;
         // Toolbar at : True = Left , false = Rigth
-        public bool m_IsLeft = true;
+        public bool m_IsLeft = false;
         // Show or hide scens on toolbar
-        public bool m_ShowQuickAccess = true;
+        public bool m_ShowQuickAccess = false;
         // Scene folder path : to load scene from it
         public string m_ScenePath = string.Empty;
         // List of all scenes

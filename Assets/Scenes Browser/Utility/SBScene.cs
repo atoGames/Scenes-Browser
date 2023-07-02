@@ -1,9 +1,7 @@
 using UnityEditor;
 using System;
-using Unity.Collections;
-using UnityEngine;
 
-namespace ScenesBrowser.Utils
+namespace ScenesBrowser.Utility
 {
 
     [Serializable]

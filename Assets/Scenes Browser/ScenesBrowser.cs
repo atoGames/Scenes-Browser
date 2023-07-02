@@ -1,10 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
-using ScenesBrowser.Data;
-using ScenesBrowser.Utils;
+using ScenesBrowser.Utility;
 using UnityEditor;
-using UnityEditor.Overlays;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityToolbarExtender;
@@ -28,7 +26,8 @@ namespace ScenesBrowser
         // For filtering scenes
         protected const string _FilterBy = "*.unity";
         // Save path
-        private const string _DataSettingsSavePath = "Assets/Editor/Scenes Browser";
+        private const string _DataSettingsSavePath = "Assets/Scenes Browser";
+        // private const string _DataSettingsSavePath = "Assets/Editor/Scenes Browser";
         // Get all path for all scene in the project
         protected static string[] _AllScenesPathInProject;
         // To save stuff
@@ -97,7 +96,7 @@ namespace ScenesBrowser
         // OnGUI
         private void OnGUI()
         {
-            // No data?
+            // We have a data?
             if (_DataSettings)
             {
                 // Auto-Select scene
@@ -159,7 +158,12 @@ namespace ScenesBrowser
             {
                 // No Data found ? Create new data
                 if (GUILayout.Button(new GUIContent(" Create", EditorGUIUtility.IconContent("CreateAddNew").image), GUILayout.Height(_Heigth + 10)))
+                {
+                    // Setup settings data
                     SetupSettingsData();
+                    // Reload scenes
+                    ReloadScenes();
+                }
 
             }
         }

@@ -1,11 +1,7 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using ScenesBrowser.Data;
 using UnityEditor;
 using UnityEngine;
 
-namespace ScenesBrowser.Utils
+namespace ScenesBrowser.Utility
 {
     public class ScenesBrowserExtender
     {
