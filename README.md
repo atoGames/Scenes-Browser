@@ -5,11 +5,10 @@
 
 A quick way to browse scenes in your project
 
-
-# Take a look at 
+ 
   Other additions used:
-- Toolbar extender ![toolbar extender](https://github.com/marijnz/unity-toolbar-extender)
-- Unity editor icons ![Unity editor icons](https://github.com/halak/unity-editor-icons)
+- Toolbar extender ![](https://github.com/marijnz/unity-toolbar-extender)
+- Unity editor icons ![](https://github.com/halak/unity-editor-icons)
 
 ## Support
 NaughtyAttributes is an open-source project that I am developing in my free time. If you like it you can support me by donating.
