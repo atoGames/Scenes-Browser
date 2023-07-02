@@ -13,5 +13,12 @@ NaughtyAttributes is an open-source project that I am developing in my free time
 
 # Overview
 
+What can you do ?
+- Rename scene
+- Hide scene from `Quick Access`
+- Delete scene
+
+# Scenes Browser - Settings
 ![Scenes Browser - Settings](https://github.com/atoGames/Scenes-Browser/blob/main/Imgs/Scenes%20Browser%20-%20Settings.jpg)
+# Quick Access
 ![Quick Access](https://github.com/atoGames/Scenes-Browser/blob/main/Imgs/Quick%20Access.jpg)
