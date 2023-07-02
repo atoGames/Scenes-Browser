@@ -344,6 +344,8 @@ namespace ScenesBrowser
                         // and add items to it
                         menu.AddItem(new GUIContent(" Toolbar Extender : GitHub"), false, OpenLink, "https://github.com/marijnz/unity-toolbar-extender");
                         menu.AddSeparator("");
+                        menu.AddItem(new GUIContent(" Unity editor icons : GitHub"), false, OpenLink, "https://github.com/halak/unity-editor-icons");
+                        menu.AddSeparator("");
                         menu.AddItem(new GUIContent(" Scenes Browser : GitHub"), false, OpenLink, "https://github.com/atoGames/Scenes-Browser");
                         menu.AddSeparator("");
                         menu.AddItem(new GUIContent(" Follow me on : Twitter"), false, OpenLink, "https://twitter.com/_atoGames");
