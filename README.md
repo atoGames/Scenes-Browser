@@ -4,12 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/atoGames/Scenes-Browser/blob/main/LICENSE)
 
 A quick way to browse scenes in your project
- 
-## Support
-NaughtyAttributes is an open-source project that I am developing in my free time. If you like it you can support me by donating.
-
-- [PayPal](https://www.paypal.me/AliMohameed)
-
+  
 
 # Scenes Browser - Settings
 
