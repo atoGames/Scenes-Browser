@@ -9,6 +9,7 @@ A quick way to browse scenes in your project
 # Scenes Browser - Settings
 
 What can you do ?
+- Open
 - Rename scene
 - Hide scene from `Quick Access`
 - Delete scene
