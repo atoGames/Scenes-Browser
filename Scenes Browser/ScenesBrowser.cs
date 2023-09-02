@@ -90,7 +90,6 @@ namespace ScenesBrowser
             onOpenNewScene += OpenNewScene;
             // On toolbar gui change
             onToolbarGUIChange += OnToolbarGUI;
-            Debug.Log("Test");
             // Reload scenes
             ReloadScenes();
         }
