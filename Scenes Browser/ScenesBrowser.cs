@@ -6,14 +6,17 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityToolbarExtender;
-using static UnityEditor.EditorGUI; 
+using static UnityEditor.EditorGUI;
+
+// Unity toolbar extender : https://github.com/marijnz/unity-toolbar-extender
+// Unity editor icons Link : https://github.com/halak/unity-editor-icons
 
 namespace ScenesBrowser
 {
     public class ScenesBrowser : EditorWindow/* , IHasCustomMenu */
     {
         protected static EditorWindow _EditorWindow;
-        protected readonly string _Ver = "Version: 0.1";
+        protected readonly string _Ver = "Version: 0.2";
         // Icon
         protected static Texture _ScenesBrowserIcon;
         // Window size
@@ -87,6 +90,7 @@ namespace ScenesBrowser
             onOpenNewScene += OpenNewScene;
             // On toolbar gui change
             onToolbarGUIChange += OnToolbarGUI;
+            Debug.Log("Test");
             // Reload scenes
             ReloadScenes();
         }
@@ -341,6 +345,8 @@ namespace ScenesBrowser
                         // and add items to it
                         menu.AddItem(new GUIContent(" Toolbar Extender : GitHub"), false, OpenLink, "https://github.com/marijnz/unity-toolbar-extender");
                         menu.AddSeparator("");
+                        menu.AddItem(new GUIContent(" Unity editor icons : GitHub"), false, OpenLink, "https://github.com/halak/unity-editor-icons");
+                        menu.AddSeparator("");
                         menu.AddItem(new GUIContent(" Scenes Browser : GitHub"), false, OpenLink, "https://github.com/atoGames/Scenes-Browser");
                         menu.AddSeparator("");
                         menu.AddItem(new GUIContent(" Follow me on : Twitter"), false, OpenLink, "https://twitter.com/_atoGames");
@@ -352,13 +358,18 @@ namespace ScenesBrowser
             GUI.EndGroup();
         }
         /// Save
-        protected void Save()
+        protected static void Save(bool isSaveSettings = true)
         {
-            Debug.Log("Saved");
-            ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
-            onToolbarGUIChange?.Invoke();
+            if (isSaveSettings)
+            {
+                Debug.Log("Settings Saved");
+                ToolbarExtender.AddToolBarGUI(_DataSettings.m_IsLeft, OnToolbarGUI);
+                onToolbarGUIChange?.Invoke();
+            }
+            // Apply save
             EditorUtility.SetDirty(_DataSettings);
             AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
         /// <summary>
         /// On toolbar gui
@@ -395,7 +406,6 @@ namespace ScenesBrowser
                 DrawScenesOnToolbar();
             }
             EditorGUILayout.EndScrollView();
-            GUIUtility.ExitGUI();
         }
         /// <summary>
         /// Draw scenes on toolbar
@@ -407,11 +417,6 @@ namespace ScenesBrowser
                 foreach (var scene in _DataSettings.SceneList.ToList())
                 {
                     var _Scene = scene;
-                    if (_Scene.Scene == null)
-                    {
-                        _DataSettings?.OnSceneChange(false);
-                        return;
-                    }
                     // The scene available ?
                     if (!_Scene.Hide)
                     {
@@ -446,6 +451,8 @@ namespace ScenesBrowser
                 _DataSettings.SetActiveScene(_CurrentScene);
                 // Open scene
                 EditorSceneManager.OpenScene(_CurrentScene.ScenePath);
+                // Save
+                Save(false);
             }
             else
                 Debug.LogWarning($"Scene file not found , this path is empty.. {_CurrentScene.ScenePath} click reload scene to update all");
@@ -457,7 +464,7 @@ namespace ScenesBrowser
         {
 
             // Settings && Refresh
-            using (var scenes = new EditorGUILayout.HorizontalScope())
+            using (var scenes = new EditorGUILayout.HorizontalScope(/* GUILayout.Width(_WidthSettingsAndRefreshBG) */))
             {
                 // Open settings
                 if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("EditorSettings Icon").image), GUILayout.Width(_WidthSettingsAndRefreshBG), GUILayout.Height(_HeigthSettingsAndRefreshBG)))
